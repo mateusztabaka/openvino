@@ -2292,3 +2292,18 @@ NGRAPH_TEST(${BACKEND_NAME}, onnx_image_scaler)
                                          {12.0, 14.0, 16.0, 18.0, 21.0, 41.0, 61.0, 81.0});
     test_case.run();
 }
+
+NGRAPH_TEST(${BACKEND_NAME}, onnx_sinus)
+{
+    const auto function = onnx_import::import_onnx_model(
+        file_util::path_join(SERIALIZED_ZOO, "onnx/sinus.prototxt"));
+
+    auto test_case = test::TestCase<TestEngine>(function);
+    const float PI = 3.141592;
+    const float SQRT2 = std::sqrt(2);
+    const float SQRT3 = std::sqrt(3);
+    test_case.add_input<double>({0, PI/6.0, PI/4.0, PI/3.0, PI/2.0, PI});
+    test_case.add_expected_output<double>(Shape{2, 3},
+                                         {0.0, 0.5, SQRT2/2.0, SQRT3/2.0, 1.0, 0.0});
+    test_case.run();
+}

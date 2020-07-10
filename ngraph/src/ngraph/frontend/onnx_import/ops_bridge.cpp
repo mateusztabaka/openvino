@@ -119,7 +119,6 @@
 #include "op/shrink.hpp"
 #include "op/sigmoid.hpp"
 #include "op/sign.hpp"
-#include "op/sin.hpp"
 #include "op/sinh.hpp"
 #include "op/size.hpp"
 #include "op/slice.hpp"
@@ -367,7 +366,6 @@ namespace ngraph
             REGISTER_OPERATOR("Shrink", 1, shrink);
             REGISTER_OPERATOR("Sigmoid", 1, sigmoid);
             REGISTER_OPERATOR("Sign", 1, sign);
-            REGISTER_OPERATOR("Sin", 1, sin);
             REGISTER_OPERATOR("Sinh", 1, sinh);
             REGISTER_OPERATOR("Size", 1, size);
             REGISTER_OPERATOR("Slice", 1, slice);
