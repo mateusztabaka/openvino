@@ -2295,15 +2295,36 @@ NGRAPH_TEST(${BACKEND_NAME}, onnx_image_scaler)
 
 NGRAPH_TEST(${BACKEND_NAME}, onnx_sinus)
 {
-    const auto function = onnx_import::import_onnx_model(
-        file_util::path_join(SERIALIZED_ZOO, "onnx/sinus.prototxt"));
+    const auto function =
+        onnx_import::import_onnx_model(file_util::path_join(SERIALIZED_ZOO, "onnx/sinus.prototxt"));
 
     auto test_case = test::TestCase<TestEngine>(function);
-    const float PI = 3.141592;
+    const float PI = M_PI;
     const float SQRT2 = std::sqrt(2);
     const float SQRT3 = std::sqrt(3);
-    test_case.add_input<double>({0, PI/6.0, PI/4.0, PI/3.0, PI/2.0, PI});
-    test_case.add_expected_output<double>(Shape{2, 3},
-                                         {0.0, 0.5, SQRT2/2.0, SQRT3/2.0, 1.0, 0.0});
+    test_case.add_input<float>(
+        {0.0f, PI / 6.0f, PI / 4.0f, PI / 3.0f, PI / 2.0f, 3.0f * PI / 2.0f});
+    test_case.add_expected_output<float>(Shape{2, 3},
+                                         {0.0f, 0.5f, SQRT2 / 2.0f, SQRT3 / 2.0f, 1.0f, -1.0f});
     test_case.run();
+}
+
+NGRAPH_TEST(${BACKEND_NAME}, onnx_sinus_invalid_type)
+{
+    try
+    {
+        const auto function = onnx_import::import_onnx_model(
+            file_util::path_join(SERIALIZED_ZOO, "onnx/sinus_int32.prototxt"));
+
+        auto test_case = test::TestCase<TestEngine>(function);
+        test_case.add_input<int>({0});
+        test_case.add_expected_output<int>(Shape{1, 1}, {0});
+        test_case.run();
+        FAIL() << "Invoking Sin operator with int32 type should throw an exception and it doesn't";
+    }
+    catch (std::runtime_error& e)
+    {
+        std::string msg{e.what()};
+        EXPECT_EQ(msg, "Sin operator does not support i32");
+    }
 }

@@ -206,6 +206,7 @@ add_library(onnx_importer SHARED
         op/shrink.cpp
         op/sigmoid.hpp
         op/sign.hpp
+        op/sin.hpp
         op/sinh.hpp
         op/size.cpp
         op/size.hpp
