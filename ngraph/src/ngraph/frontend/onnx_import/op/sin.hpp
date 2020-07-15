@@ -38,7 +38,7 @@ namespace ngraph
                     case element::Type_t::f32:
                     case element::Type_t::f64: break;
                     default:
-                        throw std::runtime_error("Sin operator does not support " +
+                        NGRAPH_CHECK(false, "Sin operator does not support " +
                                                  elem_type.get_type_name());
                     }
                     return {std::make_shared<ngraph::op::Sin>((input))};

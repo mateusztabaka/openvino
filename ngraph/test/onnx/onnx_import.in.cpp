@@ -2325,6 +2325,6 @@ NGRAPH_TEST(${BACKEND_NAME}, onnx_sinus_invalid_type)
     catch (std::runtime_error& e)
     {
         std::string msg{e.what()};
-        EXPECT_EQ(msg, "Sin operator does not support i32");
+        EXPECT_NE(msg.find("Sin operator does not support i32"), std::string::npos);
     }
 }
