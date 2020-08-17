@@ -1,0 +1,90 @@
+ir_version: 7
+producer_name: "nGraph ONNX Importer"
+graph {
+  name: "test_graph"
+  node {
+    output: "weights"
+    op_type: "Constant"
+    attribute {
+      name: "value"
+      t {
+        dims: 2
+        dims: 2
+        data_type: 2
+        int32_data: 1
+        int32_data: 2
+        int32_data: 3
+        int32_data: 4
+      }
+      type: TENSOR
+    }
+  }
+  node {
+    input: "weights"
+    output: "float_weights"
+    op_type: "Cast"
+    attribute {
+      name: "to"
+      i: 1
+      type: INT
+    }
+  }
+  node {
+    output: "w_zero_point"
+    op_type: "Constant"
+    attribute {
+      name: "value"
+      t {
+        dims: 1
+        data_type: 1
+        float_data: 1
+      }
+      type: TENSOR
+    }
+  }
+  node {
+    input: "float_weights"
+    input: "w_zero_point"
+    output: "sub"
+    op_type: "Sub"
+  }
+  node {
+    output: "w_scale"
+    op_type: "Constant"
+    attribute {
+      name: "value"
+      t {
+        dims: 1
+        data_type: 1
+        float_data: 3
+      }
+      type: TENSOR
+    }
+  }
+  node {
+    input: "sub"
+    input: "w_scale"
+    output: "weight_quantized"
+    op_type: "Mul"
+  }
+  output {
+    name: "weight_quantized"
+    type {
+      tensor_type {
+        elem_type: 1
+        shape {
+          dim {
+            dim_value: 2
+          }
+          dim {
+            dim_value: 2
+          }
+        }
+      }
+    }
+  }
+}
+opset_import {
+  domain: ""
+  version: 9
+}

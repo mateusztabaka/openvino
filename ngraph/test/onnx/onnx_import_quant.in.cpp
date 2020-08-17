@@ -632,3 +632,14 @@ NGRAPH_TEST(${BACKEND_NAME}, onnx_model_fake_quantize_nonconst_inputs_infer)
                                        16.f, 16.f, 16.f, 16.f, 16.f,  16.f,  16.f,  16.f});
     test_case.run();
 }
+
+
+NGRAPH_TEST(${BACKEND_NAME}, onnx_model_weights_quantize)
+{
+    auto function = onnx_import::import_onnx_model(
+        file_util::path_join(SERIALIZED_ZOO, "onnx/quantization/weights_quantize.prototxt"));
+
+    auto test_case = test::TestCase<TestEngine>(function);
+    test_case.add_expected_output(std::vector<float>{0, 3, 6, 9});
+    test_case.run();
+}
