@@ -13,9 +13,9 @@
 #include <cassert>
 
 ngraph::pass::ConvertWeightsQuantize::ConvertWeightsQuantize() {
-    //auto m_w_const = ngraph::pattern::wrap_type<opset1::Constant>();
-    auto m_w_const = ngraph::pattern::any_input();
-    auto m_w_convert = ngraph::pattern::wrap_type<opset1::Convert>({m_w_const});
+    //auto m_w = ngraph::pattern::wrap_type<opset1::Constant>();
+    auto m_w = ngraph::pattern::any_input();
+    auto m_w_convert = ngraph::pattern::wrap_type<opset1::Convert>({m_w});
     auto m_w_zero_point = ngraph::pattern::wrap_type<opset1::Constant>();
     auto m_sub = ngraph::pattern::wrap_type<opset1::Subtract>({m_w_convert, m_w_zero_point}, pattern::consumers_count(1));
     auto m_w_scale = ngraph::pattern::wrap_type<opset1::Constant>();
@@ -27,10 +27,11 @@ ngraph::pass::ConvertWeightsQuantize::ConvertWeightsQuantize() {
             return false;
 
         auto pattern_map = m.get_pattern_map();
-        auto w_convert = pattern_map[m_w_const];
+        auto w = pattern_map[m_w];
+        auto w_convert = pattern_map[m_w_convert];
         float min = 0;
         float max = 0;
-        switch (w_convert->get_element_type()) {
+        switch (w->get_element_type()) {
         case element::Type_t::i8:
             min = static_cast<float>(std::numeric_limits<int8_t>::min());
             max = static_cast<float>(std::numeric_limits<int8_t>::max());
