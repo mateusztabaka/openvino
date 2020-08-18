@@ -640,6 +640,7 @@ NGRAPH_TEST(${BACKEND_NAME}, onnx_model_weights_quantize)
         file_util::path_join(SERIALIZED_ZOO, "onnx/quantization/weights_quantize.prototxt"));
 
     auto test_case = test::TestCase<TestEngine>(function);
+    test_case.add_input(std::vector<float>{1});
     test_case.add_expected_output(std::vector<float>{0, 3, 6, 9});
     test_case.run();
 }
