@@ -10,7 +10,7 @@
 #include <ngraph/opsets/opset1.hpp>
 #include <ngraph/rt_info.hpp>
 #include <ngraph/pattern/op/wrap_type.hpp>
-#include <cassert>
+
 
 ngraph::pass::ConvertWeightsQuantize::ConvertWeightsQuantize() {
     //auto m_w = ngraph::pattern::wrap_type<opset1::Constant>();
@@ -40,6 +40,8 @@ ngraph::pass::ConvertWeightsQuantize::ConvertWeightsQuantize() {
             min = static_cast<float>(std::numeric_limits<uint8_t>::min());
             max = static_cast<float>(std::numeric_limits<uint8_t>::max());
             break;
+        default:
+            throw ngraph_error("ConvertWeightsQuantize: unsupported input data type " + w->get_element_type().get_type_name());
         }
         size_t levels = max - min + 1;
         auto input_low = opset1::Constant::create(element::f32, Shape{}, {min});
