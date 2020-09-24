@@ -38,4 +38,4 @@ Re-registering ONNX operators within the same process is supported. During regis
 
 ### Requirements for building
 
-@snippet CMakeLists.txt cmake:onnx_custom_op
+@snippet docs/onnx_custom_op/CMakeLists.txt cmake:onnx_custom_op
