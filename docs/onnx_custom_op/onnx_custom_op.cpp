@@ -3,8 +3,11 @@
 #include <array>
 
 //! [onnx_custom_op:headers]
+// ie_core.hpp provides definitions for classes need to infer a model (like Core, CNNNetwork, etc.).
 #include <ie_core.hpp>
+// onnx_import/onnx_utils.hpp provides ngraph::onnx_import::register_operator function, that registers operator in ONNX importer's set.
 #include <onnx_import/onnx_utils.hpp>
+// onnx_import/default_opset.hpp provides the declaration of default operator set (set with predefined nGraph operators).
 #include <onnx_import/default_opset.hpp>
 //! [onnx_custom_op:headers]
 
