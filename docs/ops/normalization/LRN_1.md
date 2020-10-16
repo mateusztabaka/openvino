@@ -53,7 +53,7 @@
 **Detailed description**:
 Local Response Normalization performs a normalization over local input regions.
 Each input value is divided by
-\f[ (bias + \frac{alpha}{{size}^{len(axes)}} \cdot \sum_{i} data_{i})^{beta} \f].
+\f[ (bias + \frac{alpha}{{size}^{len(axes)}} \cdot \sum_{i} data_{i})^{beta} \f]
 The sum is taken over a region of a side length `size` and dimension that equals to number of axes.
 The region is centered at the input value that's being normalized (with zero padding added if needed).
 
