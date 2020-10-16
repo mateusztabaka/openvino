@@ -51,7 +51,6 @@
 * **1**: Output tensor of the same shape and type as the `data` input tensor.
 
 **Detailed description**:
-[Reference](http://caffe.berkeleyvision.org/tutorial/layers/lrn.html)
 Local Response Normalization performs a normalization over local input regions.
 Each input value is divided by
 \f[ (bias + \frac{alpha}{{size}^{len(axes)}} \cdot \sum_{i} data_{i})^{beta} \f].
