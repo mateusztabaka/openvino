@@ -57,14 +57,14 @@ Each input value is divided by
 The sum is taken over a region of a side length `size` and dimension that equals to number of axes.
 The region is centered at the input value that's being normalized (with zero padding added if needed).
 
-Here is an example for 4D `data` input tensor and `axes` = `[1]`:
+Here is an example for 4D `data` input tensor and `axes = [1]`:
 ```
 sqr_sum[a, b, c, d] =
     sum(data[a, max(0, b - size / 2) : min(data.shape[1], b + size / 2 + 1), c, d] ** 2)
 output = data / (bias + (alpha / size ** len(axes)) * sqr_sum) ** beta
 ```
 
-Example for 4D `data` input tensor and `axes` = `[2, 3]`:
+Example for 4D `data` input tensor and `axes = [2, 3]`:
 ```
 sqr_sum[a, b, c, d] =
     sum(data[a, b, max(0, c - size / 2) : min(data.shape[2], c + size / 2 + 1),  max(0, d - size / 2) : min(data.shape[3], d + size / 2 + 1)] ** 2)
