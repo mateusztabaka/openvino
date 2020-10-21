@@ -12,4 +12,4 @@ The OpenVINO™ Python\* package includes the following sub-packages:
  - `openvino.tools.benchmark` - Measure latency and throughput.
 
 ## See Also
-* [Introduction to Inference Engine](inference_engine_intro.md)
+* [Introduction to Intel's Deep Learning Inference Engine](Introduction.md)

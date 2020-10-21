@@ -14,4 +14,4 @@ The OpenVINO™ toolkit installation includes the following tools:
 
 
 ## See Also
-* [Introduction to Inference Engine](inference_engine_intro.md)
+* [Introduction to Deep Learning Inference Engine](Introduction.md)

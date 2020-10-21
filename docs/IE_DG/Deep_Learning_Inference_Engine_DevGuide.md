@@ -42,6 +42,8 @@ inference of a pre-trained and optimized deep learning model and a set of sample
 
 ## Table of Contents
 
+* [Introduction to Intel® Deep Learning Deployment Toolkit](Introduction.md)
+
 * [Inference Engine API Changes History](API_Changes.md)
 
 * [Introduction to Inference Engine](inference_engine_intro.md)
@@ -74,6 +76,7 @@ inference of a pre-trained and optimized deep learning model and a set of sample
 * [Supported Devices](supported_plugins/Supported_Devices.md)
     * [GPU](supported_plugins/CL_DNN.md)
     * [CPU](supported_plugins/CPU.md)
+    * [FPGA](supported_plugins/FPGA.md)
     * [VPU](supported_plugins/VPU.md)
       * [MYRIAD](supported_plugins/MYRIAD.md)
       * [HDDL](supported_plugins/HDDL.md)
@@ -85,4 +88,4 @@ inference of a pre-trained and optimized deep learning model and a set of sample
 
 * [Known Issues](Known_Issues_Limitations.md)
 
-**Typical Next Step:** [Introduction to Inference Engine](inference_engine_intro.md)
+**Typical Next Step:** [Introduction to Intel® Deep Learning Deployment Toolkit](Introduction.md)
