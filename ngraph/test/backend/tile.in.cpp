@@ -28,6 +28,8 @@
 #include "util/all_close.hpp"
 #include "util/all_close_f.hpp"
 #include "util/ndarray.hpp"
+#include "util/engine/test_engines.hpp"
+#include "util/test_case.hpp"
 #include "util/test_control.hpp"
 #include "util/test_tools.hpp"
 
@@ -89,3 +91,25 @@ NGRAPH_TEST(${BACKEND_NAME}, tile_3d_few_repeats)
                                   read_vector<float>(result),
                                   MIN_FLOAT_TOLERANCE_BITS));
 }
+
+using namespace::test;
+using TestEngine = test::ENGINE_CLASS_NAME(${BACKEND_NAME});
+
+NGRAPH_TEST(${BACKEND_NAME}, tile_non_constant_repeat)
+{
+    Shape shape_a{3};
+    auto A = make_shared<op::Parameter>(element::f32, shape_a);
+    Shape shape_re{3};
+    auto repeats = make_shared<op::Parameter>(element::i64, shape_re);
+    Shape shape_r{2, 2, 3};
+    auto tile = make_shared<op::v0::Tile>(A, repeats);
+    auto f = make_shared<Function>(tile, ParameterVector{A, repeats});
+
+    auto test_case = test::TestCase<TestEngine, TestCaseType::DYNAMIC>(f);
+    test_case.add_input<float>({1, 2, 3});
+    test_case.add_input<int64_t>({2, 2, 1});
+    test_case.add_expected_output<float>(shape_r, {1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3});
+    test_case.run();
+}
+
+
