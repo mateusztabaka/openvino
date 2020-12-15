@@ -30,8 +30,10 @@
 #include "util/all_close.hpp"
 #include "util/all_close_f.hpp"
 #include "util/ndarray.hpp"
+#include "util/test_case.hpp"
 #include "util/test_control.hpp"
 #include "util/test_tools.hpp"
+#include "util/engine/test_engines.hpp"
 
 NGRAPH_SUPPRESS_DEPRECATED_START
 
@@ -517,4 +519,20 @@ NGRAPH_TEST(${BACKEND_NAME}, broadcast_matrix_2)
     EXPECT_TRUE(test::all_close_f((vector<float>{1, 1, 2, 2, 3, 3, 4, 4}),
                                   read_vector<float>(result),
                                   MIN_FLOAT_TOLERANCE_BITS));
+}
+
+using TestEngine = test::ENGINE_CLASS_NAME(${BACKEND_NAME});
+
+NGRAPH_TEST(${BACKEND_NAME}, broadcast_dynamic)
+{
+    Shape shape_a{1};
+    auto A = make_shared<op::Parameter>(element::f32, shape_a);
+    auto target_shape = make_shared<op::Parameter>(element::u64, Shape{4});
+    auto f = make_shared<Function>(make_shared<op::v1::Broadcast>(A, target_shape), ParameterVector{A, target_shape});
+
+    auto test_case = test::TestCase<TestEngine, test::TestCaseType::DYNAMIC>(f);
+    test_case.add_input<float>({2});
+    test_case.add_input<int64_t>({2, 2, 1, 2});
+    test_case.add_expected_output<float>(Shape{2, 2, 1, 2}, {2, 2, 2, 2, 2, 2, 2, 2});
+    test_case.run();
 }
