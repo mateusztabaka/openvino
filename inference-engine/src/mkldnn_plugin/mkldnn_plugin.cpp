@@ -218,6 +218,8 @@ static void Transformation(CNNNetwork& clonedNetwork, const Config& conf) {
         LowPrecisionTransformer transformer(LowPrecisionTransformer::getAllTransformations(params)
             .add<ConvolutionTransformation, ngraph::opset1::Convolution>(
                 LayerTransformation::Params(params).setPrecisionsOnActivations({ngraph::element::u8}).setSupportAsymmetricQuantization(true))
+            .add<ConvolutionTransformation, ngraph::opset1::BinaryConvolution>(
+                LayerTransformation::Params(params).setPrecisionsOnActivations({ngraph::element::u1}).setSupportAsymmetricQuantization(true))
             .add<GroupConvolutionTransformation, ngraph::opset1::GroupConvolution>(
                 LayerTransformation::Params(params).setPrecisionsOnActivations({ ngraph::element::u8 }).setSupportAsymmetricQuantization(true))
             .addStandaloneCleanup<MultiplyToGroupConvolutionTransformation, ngraph::opset1::Multiply>(

@@ -13,6 +13,20 @@
 
 NGRAPH_RTTI_DEFINITION(ngraph::pass::ConvToBinaryConv, "ConvToBinaryConv", 0);
 
+static std::vector<uint8_t> binarize_weights(const std::vector<float>& weights) {
+    std::vector<uint8_t> out;
+
+    for (size_t i = 0; i < weights.size(); i += 8) {
+        uint8_t val = 0;
+        for (size_t j = 0; j < std::min(8UL, weights.size() - i); j++) {
+            if (weights[i + j] == 1.0f)
+                val |= 1 << j;
+        }
+        out.push_back(val);
+    }
+    return out;
+}
+
 ngraph::pass::ConvToBinaryConv::ConvToBinaryConv() {
     auto fq_act_pattern = ngraph::pattern::wrap_type<opset5::FakeQuantize>(
             {ngraph::pattern::any_input(),
@@ -41,11 +55,11 @@ ngraph::pass::ConvToBinaryConv::ConvToBinaryConv() {
         auto fq_weights = std::dynamic_pointer_cast<opset5::FakeQuantize>(conv->input_value(1).get_node_shared_ptr());
         if (!fq_weights || fq_weights->get_levels() != 2)
             return false;
-        auto input_low_constant = std::dynamic_pointer_cast<opset5::Constant>(fq_weights->input_value(3).get_node_shared_ptr());
+        auto input_low_constant = std::dynamic_pointer_cast<opset5::Constant>(fq_weights->input_value(1).get_node_shared_ptr());
         if (!input_low_constant)
             return false;
         std::cout << __FILE__ << ":" << __LINE__ << "!!!!!!!!!!!!!!!!!!!!Conv to bin conv\n";
-        auto input_high_constant = std::dynamic_pointer_cast<opset5::Constant>(fq_weights->input_value(4).get_node_shared_ptr());
+        auto input_high_constant = std::dynamic_pointer_cast<opset5::Constant>(fq_weights->input_value(2).get_node_shared_ptr());
         if (!input_high_constant)
             return false;
         std::cout << __FILE__ << ":" << __LINE__ << "!!!!!!!!!!!!!!!!!!!!Conv to bin conv\n";
@@ -62,11 +76,14 @@ ngraph::pass::ConvToBinaryConv::ConvToBinaryConv() {
         auto input_high = input_high_constant->cast_vector<float>()[0];
         auto output_low = output_low_constant->cast_vector<float>()[0];
         auto output_high = output_high_constant->cast_vector<float>()[0];
-        if (!(output_low == -output_high || ((output_low == 0.0f) ^ (output_high == 0.0f))))
+        std::cout << "input low " << input_low << " input high " << input_high << " out low " << output_low << " output high " << output_high << std::endl;
+        bool output_low_is_zero = output_low == 0.0f;
+        bool output_high_is_zero = output_high == 0.0f;
+        if (!(output_low == -output_high || (output_low_is_zero ^ output_high_is_zero)))
             return false;
         std::cout << __FILE__ << ":" << __LINE__ << "!!!!!!!!!!!!!!!!!!!!Conv to bin conv\n";
 
-        float norm_factor = output_high == 0.0f ? output_low : output_high;
+        float norm_factor = output_high_is_zero ? output_low : output_high;
         auto norm_factor_constant = opset5::Constant::create(element::f32, Shape{}, {norm_factor});
         output_low = std::roundf(output_low / norm_factor);
         output_high = std::roundf(output_high / norm_factor);
@@ -75,29 +92,45 @@ ngraph::pass::ConvToBinaryConv::ConvToBinaryConv() {
         if (!fq_input_constant)
             return false;
         auto fq_input = fq_input_constant->cast_vector<float>();
+        /*
+        std::cout << "FQ INPUT\n";
+        for (auto w : fq_input)
+            std::cout << w << std::endl;
+        std::cout << std::endl;
+        */
         std::vector<float> weights;
-        weights.resize(fq_input.size());
+        weights.reserve(fq_input.size());
         std::cout << "input low " << input_low << " input high " << input_high << " out low " << output_low << " output high " << output_high << std::endl;
         std::transform(fq_input.begin(), fq_input.end(), std::back_inserter(weights), [input_low, input_high, output_low, output_high] (float f) -> float {
-            std::cout << "f " << f << std::endl;
             if (f <= input_low) {
+            //std::cout << "f " << f << std::endl;
                 return output_low;
             } else if (f > input_high) {
+            //std::cout << "f " << f << std::endl;
                 return output_high;
             } else {
-                return std::roundf((f - input_low) / (input_high - input_low)) * (output_high - output_low) + output_low;
+            /*
+            std::cout << "f " << f << " " << f - input_low << " " <<
+            (static_cast<long double>(f) - input_low) / (input_high - input_low) << " " << std::round((f - input_low) / (input_high - input_low)) << std::endl;
+            */
+                return std::round((f - input_low) / (input_high - input_low)) * (output_high - output_low) + output_low;
             }
         });
+        /*
         std::cout << "WEIGHTS\n";
         for (auto w : weights)
-            std::cout << w << "\n";
+            std::cout << w << std::endl;
         std::cout << std::endl;
+        */
         if (!std::all_of(weights.begin(), weights.end(), [] (float f) -> bool { return f == 1.0f || f == -1.0f; }))
             return false;
         std::cout << __FILE__ << ":" << __LINE__ << "!!!!!!!!!!!!!!!!!!!!Conv to bin conv\n";
 
-        if (output_low == 0.0f) {
-            auto new_conv = std::make_shared<opset5::BinaryConvolution>(conv->input_value(0), conv->input_value(1),
+        auto bin_weights = binarize_weights(weights);
+        auto bin_weights_constant = std::make_shared<opset5::Constant>(element::u1, fq_input_constant->get_shape(), bin_weights.data());
+
+        if (output_low_is_zero) {
+            auto new_conv = std::make_shared<opset5::BinaryConvolution>(conv->input_value(0), bin_weights_constant,
                                                                         conv->get_strides(),
                                                                         conv->get_pads_begin(),
                                                                         conv->get_pads_end(),
@@ -120,7 +153,7 @@ ngraph::pass::ConvToBinaryConv::ConvToBinaryConv() {
             return true;
         }
 
-        auto new_conv = std::make_shared<opset5::BinaryConvolution>(conv->input_value(0), conv->input_value(1),
+        auto new_conv = std::make_shared<opset5::BinaryConvolution>(conv->input_value(0), bin_weights_constant,
                                                                     conv->get_strides(),
                                                                     conv->get_pads_begin(),
                                                                     conv->get_pads_end(),

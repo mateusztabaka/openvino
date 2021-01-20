@@ -66,13 +66,15 @@ public:
             return -1.0e15f;
         } else if (precision == element::f32) {
             return std::numeric_limits<float>::lowest();
+        } else if (precision == element::u1) {
+            return 0;
         } else {
             NGRAPH_CHECK(false, "unexpected precision ", precision);
         }
     }
 
     static float getMaxValue(const element::Type precision, const size_t levels) {
-        if ((levels != 255ul) && (levels != 256ul)) {
+        if ((levels != 255ul) && (levels != 256ul) && (levels != 2ul)) {
             THROW_TRANSFORMATION_EXCEPTION << "unexpected levels " << levels;
         }
 
@@ -84,6 +86,8 @@ public:
             return 1.0e15f;
         } else if (precision == element::f32) {
             return std::numeric_limits<float>::max();
+        } else if (precision == element::u1) {
+            return 1ul;
         } else {
             THROW_TRANSFORMATION_EXCEPTION << "unexpected precision " << precision;
         }
