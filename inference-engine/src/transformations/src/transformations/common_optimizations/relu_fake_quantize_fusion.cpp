@@ -41,7 +41,7 @@ ngraph::pass::ReluFakeQuantizeFusion::ReluFakeQuantizeFusion() {
         if (!fq)
             return false;
 
-        auto new_fq = std::make_shared<ngraph::opset5::FakeQuantize>(data,
+        auto new_fq = register_new_node<ngraph::opset5::FakeQuantize>(data,
                                                                      fq->input_value(1),
                                                                      fq->input_value(2),
                                                                      fq->input_value(3),
