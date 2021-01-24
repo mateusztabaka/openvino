@@ -16,55 +16,39 @@ using namespace ngraph;
 
 NGRAPH_RTTI_DEFINITION(pass::BinarizeWeights, "BinarizeWeights", 0);
 
-// Perform weights quantization using following steps
-// if (weights <= input_low)
-//    return output_low;
-// if (weights > input_high)
-//    return output_high;
-// return round((f - input_low) / (input_high - input_low)) * (output_high - output_low) + output_low;
-std::shared_ptr<Node> quantize_weights(const Output<Node>& weights, const Output<Node>& input_low, const Output<Node>& input_high,
-                                       const Output<Node>& output_low, const Output<Node>& output_high) {
-    // if (weights <= input_low)
-    //    return output_low;
-    auto less_eq = std::make_shared<opset5::Convert>(std::make_shared<opset5::LessEqual>(weights, input_low), element::f32);
-    auto output_low_branch = std::make_shared<opset5::Multiply>(less_eq, output_low);
-    // if (weights > input_high)
-    //    return output_high;
-    auto greater = std::make_shared<opset5::Convert>(std::make_shared<opset5::Greater>(weights, input_high), element::f32);
-    auto output_high_branch = std::make_shared<opset5::Multiply>(greater, output_high);
-    // round((f - input_low) / (input_high - input_low)) * (output_high - output_low) + output_low;
-    auto round_branch = std::make_shared<opset5::Add>(
-        std::make_shared<opset5::Multiply>(
-            std::make_shared<opset5::Round>(
-                std::make_shared<opset5::Divide>(
-                    std::make_shared<opset5::Subtract>(weights, input_low),
-                    std::make_shared<opset5::Subtract>(input_high, input_low)),
-                opset5::Round::RoundMode::HALF_AWAY_FROM_ZERO),
-            std::make_shared<opset5::Subtract>(output_high, output_low)),
-        output_low);
-    // output_low_branch + output_high_branch + round_branch
-    return std::make_shared<opset5::Add>(std::make_shared<opset5::Add>(output_low_branch, output_high_branch), round_branch);
+
+static float quantize(float f, float input_low, float input_high, float output_low, float output_high) {
+    if (f <= input_low)
+        return output_low;
+    if (f > input_high)
+        return output_high;
+    return std::round((f - input_low) / (input_high - input_low)) * (output_high - output_low) + output_low;
 }
 
-// Perform weights quantization using following steps
-// if (weights <= input_thr)
-//    return output_low;
-// if (weights > input_thr)
-//    return output_high;
-std::shared_ptr<Node> quantize_weights(const Output<Node>& weights, const Output<Node>& input_thr,
-                                       const Output<Node>& output_low, const Output<Node>& output_high) {
-    // if (weights <= input_thr)
-    //    return output_low;
-    auto less_eq = std::make_shared<opset5::Convert>(std::make_shared<opset5::LessEqual>(weights, input_thr), element::f32);
-    auto output_low_branch = std::make_shared<opset5::Multiply>(less_eq, output_low);
-    // if (weights > input_thr)
-    //    return output_high;
-    auto greater = std::make_shared<opset5::Convert>(std::make_shared<opset5::Greater>(weights, input_thr), element::f32);
-    auto output_high_branch = std::make_shared<opset5::Multiply>(greater, output_high);
-    // output_low_branch + output_high_branch
-    return std::make_shared<opset5::Add>(output_low_branch, output_high_branch);
-}
 
+static std::vector<float> quantize_weights(const Shape& weights_shape, std::vector<float>& weights,
+                                           Shape input_low_high_shape, const std::vector<float>& input_low, const std::vector<float>& input_high,
+                                           Shape output_low_high_shape, const std::vector<float>& output_low, const std::vector<float>& output_high) {
+    NGRAPH_CHECK(shape_size(input_low_high_shape) == 1 || shape_size(input_low_high_shape) == weights_shape[0]);
+    NGRAPH_CHECK(shape_size(output_low_high_shape) == 1 || shape_size(output_low_high_shape) == weights_shape[0]);
+    size_t out_feat_off = 1;
+    for (size_t i = 1; i < weights_shape.size(); i++)
+        out_feat_off *= weights_shape[i];
+
+    std::vector<float> out;
+    out.reserve(shape_size(weights_shape));
+
+    auto get_idx = [out_feat_off] (size_t i, const Shape& shape) -> size_t {
+        return (i / out_feat_off) % shape[0];
+    };
+
+    for (size_t i = 0; i < shape_size(weights_shape); i++) {
+        size_t in_idx = get_idx(i, input_low_high_shape);
+        size_t out_idx = get_idx(i, output_low_high_shape);
+        out.push_back(quantize(weights[i], input_low[in_idx], input_high[in_idx], output_low[out_idx], output_high[out_idx]));
+    }
+    return out;
+}
 
 
 pass::BinarizeWeights::BinarizeWeights() {
@@ -100,10 +84,8 @@ pass::BinarizeWeights::BinarizeWeights() {
         if (!weights_const)
             return false;
 
-        auto check_output_low_high = [] (const std::shared_ptr<opset5::Constant>& output_low_const,
-                                         const std::shared_ptr<opset5::Constant>& output_high_const) -> std::tuple<bool, bool, bool> {
-            auto output_low = output_low_const->cast_vector<float>();
-            auto output_high = output_high_const->cast_vector<float>();
+        auto check_output_low_high = [] (const std::vector<float>& output_low,
+                                         const std::vector<float>& output_high) -> std::tuple<bool, bool, bool> {
             bool output_low_is_zero = true;
             bool output_high_is_zero = true;
             bool output_low_high_are_opposite = true;
@@ -119,11 +101,18 @@ pass::BinarizeWeights::BinarizeWeights() {
         auto activations_output_high_const = std::dynamic_pointer_cast<opset5::Constant>(activations_fq->input_value(4).get_node_shared_ptr());
         if (!activations_output_low_const || !activations_output_high_const)
             return false;
+
+        // Verify output low and high on activations and weights
+        // output low and high are either opposite or one of it is equal to zero
+
+        // Check output low and high on activations FQ first
         bool act_out_low_is_zero = false;
         bool act_out_high_is_zero = false;
         bool act_out_low_high_are_opposite = false;
-        std::tie(act_out_low_is_zero, act_out_high_is_zero, act_out_low_high_are_opposite) = check_output_low_high(activations_output_low_const,
-                                                                                                                   activations_output_high_const);
+        auto activations_output_low = activations_output_low_const->cast_vector<float>();
+        auto activations_output_high = activations_output_high_const->cast_vector<float>();
+        std::tie(act_out_low_is_zero, act_out_high_is_zero, act_out_low_high_are_opposite) = check_output_low_high(activations_output_low,
+                                                                                                                   activations_output_high);
         if (!(act_out_low_high_are_opposite || (act_out_low_is_zero ^ act_out_high_is_zero)))
             return false;
 
@@ -135,36 +124,54 @@ pass::BinarizeWeights::BinarizeWeights() {
         auto weights_output_high_const = std::dynamic_pointer_cast<opset5::Constant>(weights_fq->input_value(4).get_node_shared_ptr());
         if (!weights_output_low_const || !weights_output_high_const)
             return false;
+
+        // Check output low and high on weights FQ
         bool weights_out_low_is_zero = false;
         bool weights_out_high_is_zero = false;
         bool weights_out_low_high_are_opposite = false;
-        std::tie(weights_out_low_is_zero, weights_out_high_is_zero, weights_out_low_high_are_opposite) = check_output_low_high(weights_output_low_const,
-                                                                                                                               weights_output_high_const);
+        auto weights_output_low = weights_output_low_const->cast_vector<float>();
+        auto weights_output_high = weights_output_high_const->cast_vector<float>();
+        std::tie(weights_out_low_is_zero, weights_out_high_is_zero, weights_out_low_high_are_opposite) = check_output_low_high(weights_output_low,
+                                                                                                                               weights_output_high);
         if (!(weights_out_low_high_are_opposite || (weights_out_low_is_zero ^ weights_out_high_is_zero)))
             return false;
 
-        auto weights_input_low = weights_input_low_const->cast_vector<float>();
-        auto weights_input_high = weights_input_high_const->cast_vector<float>();
-        bool weights_in_low_and_high_are_equal = true;
-        for (size_t i = 0; i < weights_input_low.size(); i++) {
-            weights_in_low_and_high_are_equal = weights_in_low_and_high_are_equal &&
-                std::fabs(weights_input_low[i] - weights_input_high[i]) < std::numeric_limits<float>::epsilon();
+        // Normalize output low and high to either (0, 1), (1, 0) or (-1, 1)
+        auto normalize_output_low_high = [] (bool output_high_is_zero, std::vector<float>& output_low, std::vector<float>& output_high) {
+             if (output_high_is_zero) {
+                for (size_t i = 0; i < output_low.size(); i++) {
+                    output_low[i] = 1.0f;
+                    output_high[i] /= output_low[i];
+                }
+            } else {
+                for (size_t i = 0; i < output_low.size(); i++) {
+                    output_low[i] /= output_high[i];
+                    output_high[i] = 1.0f;
+                }
+            }
+        };
+
+        normalize_output_low_high(act_out_high_is_zero, activations_output_low, activations_output_high);
+        normalize_output_low_high(weights_out_high_is_zero, weights_output_low, weights_output_high);
+
+        // Choose additional normalization factor put after Convolution
+        std::shared_ptr<Node> activations_norm_factor;
+        if (act_out_high_is_zero) {
+            activations_norm_factor = activations_output_low_const;
+        } else {
+            activations_norm_factor = activations_output_high_const;
+        }
+        std::shared_ptr<Node> weights_norm_factor;
+        if (weights_out_high_is_zero) {
+            weights_norm_factor = weights_output_low_const;
+        } else {
+            weights_norm_factor = weights_output_high_const;
         }
 
-        std::shared_ptr<Node> activations_norm_factor;
-        if (act_out_high_is_zero)
-            activations_norm_factor = activations_output_low_const;
-        else
-            activations_norm_factor = activations_output_high_const;
-        std::shared_ptr<Node> weights_norm_factor;
-        if (weights_out_high_is_zero)
-            weights_norm_factor = weights_output_low_const;
-        else
-            weights_norm_factor = weights_output_high_const;
-
-        auto output_low_normalized = std::make_shared<opset5::Divide>(activations_output_low_const, activations_norm_factor);
+        // Create new FQ on activations with new output low/high
+        auto output_low_normalized = op::Constant::create(element::f32, activations_output_low_const->get_shape(), activations_output_low);
         output_low_normalized->set_friendly_name(activations_output_low_const->get_friendly_name());
-        auto output_high_normalized = std::make_shared<opset5::Divide>(activations_output_high_const, activations_norm_factor);
+        auto output_high_normalized = op::Constant::create(element::f32, activations_output_high_const->get_shape(), activations_output_high);
         output_high_normalized->set_friendly_name(activations_output_high_const->get_friendly_name());
         auto new_activations_fq = activations_fq->clone_with_new_inputs({activations_fq->input_value(0),
                                                                          activations_fq->input_value(1),
@@ -173,18 +180,16 @@ pass::BinarizeWeights::BinarizeWeights() {
                                                                          output_high_normalized});
         new_activations_fq->set_friendly_name(activations_fq->get_friendly_name());
 
-        std::shared_ptr<Node> quantized_weights;
-        if (weights_in_low_and_high_are_equal) {
-            quantized_weights = quantize_weights(weights_const, weights_input_low_const,
-                                                 std::make_shared<opset5::Divide>(weights_output_low_const, weights_norm_factor),
-                                                 std::make_shared<opset5::Divide>(weights_output_high_const, weights_norm_factor));
-        } else {
-            quantized_weights = quantize_weights(weights_const, weights_input_low_const, weights_input_high_const,
-                                                 std::make_shared<opset5::Divide>(weights_output_low_const, weights_norm_factor),
-                                                 std::make_shared<opset5::Divide>(weights_output_high_const, weights_norm_factor));
-        }
-        quantized_weights->set_friendly_name(weights_fq->get_friendly_name());
-        auto new_conv = conv->clone_with_new_inputs({new_activations_fq, quantized_weights});
+        // Quantize weights - here we get rid of FQ on weights and create a constant with quantized weights
+        auto weights = weights_const->cast_vector<float>();
+        auto weights_input_low = weights_input_low_const->cast_vector<float>();
+        auto weights_input_high = weights_input_high_const->cast_vector<float>();
+        auto quantized_weights = quantize_weights(weights_const->get_shape(), weights,
+                                                  weights_input_low_const->get_shape(), weights_input_low, weights_input_high,
+                                                  weights_output_low_const->get_shape(), weights_output_low, weights_output_high);
+        auto quantized_weights_const = op::Constant::create(element::f32, weights_const->get_shape(), quantized_weights);
+        quantized_weights_const->set_friendly_name(weights_const->get_friendly_name());
+        auto new_conv = conv->clone_with_new_inputs({new_activations_fq, quantized_weights_const});
         new_conv->set_friendly_name(conv->get_friendly_name());
 
         std::vector<int64_t> norm_factor_shape = {-1};
