@@ -86,7 +86,8 @@ ngraph::pass::GroupConvolutionMultiplyFusion::GroupConvolutionMultiplyFusion() {
     MATCHER_SCOPE(GroupConvolutionMultiplyFusion);
     auto input = pattern::any_input();
     auto weights = ngraph::pattern::any_input();//pattern::has_static_dims({0, 1}) /* has GOIYX layout */);
-    auto conv = ngraph::pattern::wrap_type<opset4::GroupConvolution>({input, weights}, pattern::consumers_count(1));
+    auto reshape = ngraph::pattern::wrap_type<opset4::Reshape>({weights, ngraph::pattern::wrap_type<opset4::Constant>()});
+    auto conv = ngraph::pattern::wrap_type<opset4::GroupConvolution>({input, reshape}, pattern::consumers_count(1));
     auto mul_const = ngraph::pattern::wrap_type<opset4::Constant>();//pattern::has_static_shape());
     auto mul = ngraph::pattern::wrap_type<opset4::Multiply>({conv, mul_const});
 
@@ -98,9 +99,9 @@ ngraph::pass::GroupConvolutionMultiplyFusion::GroupConvolutionMultiplyFusion() {
         const auto & m_input = pattern_to_output.at(input);
         const auto & m_conv = pattern_to_output.at(conv).get_node_shared_ptr();
         const auto & m_mul = pattern_to_output.at(mul).get_node_shared_ptr();
+        const auto & reshape = m_conv->input_value(1).get_node_shared_ptr();
 
-        const auto & G = m_weights.get_partial_shape()[0].get_length();
-        const auto & O = m_weights.get_partial_shape()[1].get_length();
+        const auto & O = m_weights.get_partial_shape()[0].get_length();
         const auto & weights_rank = m_weights.get_partial_shape().rank().get_length();
         const auto & const_shape = m_const.get_shape();
 
@@ -111,33 +112,29 @@ ngraph::pass::GroupConvolutionMultiplyFusion::GroupConvolutionMultiplyFusion() {
         // channel and can be fused into Convolution weights.
         // Also Constant shape rank must be less or equal Convolution output shape
         // otherwise fusion will break output broadcasting
-        auto expected_shape = Shape(weights_rank - 1, 1);
-        expected_shape[1] = G * O;
+        auto expected_shape = Shape(weights_rank, 1);
+        expected_shape[0] = O;
 
-        if (op::util::check_for_broadcast(expected_shape, const_shape)) {
-            return false;
-        }
-
-        // Reshape constant to [G, O, 1, 1, 1] where the number of 1 is equal to
+        // Reshape constant to [O, 1, 1, 1, ..] where the number of 1 is equal to
         // the number of weights dimensions. In case of scalar we skip Reshape.
         // This Reshape aligns Constant shape for multiplication with weights.
         Output<Node> final_const = m_const;
         if (!is_scalar_multiplier) {
-            auto final_const_shape = Shape(weights_rank, 1);
-            final_const_shape[0] = G;
-            final_const_shape[1] = O;
             final_const = std::make_shared<opset4::Reshape>(m_const,
-                                                            opset4::Constant::create(ngraph::element::i64, ngraph::Shape{final_const_shape.size()},
-                                                                                     final_const_shape), true);
+                                                            opset4::Constant::create(ngraph::element::i64, ngraph::Shape{expected_shape.size()},
+                                                                                     expected_shape), true);
         }
 
         // Multiply convolution weights with aligned Constant values
         auto weights_multiply = std::make_shared<opset4::Multiply>(m_weights, final_const);
+        weights_multiply->set_friendly_name(m_mul->get_friendly_name());
+        auto new_reshape = reshape->clone_with_new_inputs({weights_multiply, reshape->input_value(1)});
+        new_reshape->set_friendly_name(reshape->get_friendly_name());
 
         // Replace Convolution->Multiply with Convolution with new inputs
-        auto new_conv = m_conv->copy_with_new_inputs({m_input, weights_multiply});
-        new_conv->set_friendly_name(m_mul->get_friendly_name());
-        copy_runtime_info({m_conv, m_mul}, {new_conv, final_const.get_node_shared_ptr(), weights_multiply});
+        auto new_conv = m_conv->copy_with_new_inputs({m_input, new_reshape});
+        new_conv->set_friendly_name(m_conv->get_friendly_name());
+        copy_runtime_info({m_conv, m_mul}, {new_conv, final_const.get_node_shared_ptr(), weights_multiply, new_reshape});
         replace_node(m_mul, new_conv);
         return true;
     };
