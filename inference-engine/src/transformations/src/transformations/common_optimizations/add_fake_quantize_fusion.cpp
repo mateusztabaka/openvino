@@ -32,14 +32,19 @@ ngraph::pass::AddFakeQuantizeFusion::AddFakeQuantizeFusion() {
         if (!add)
             return false;
         std::shared_ptr<Node> add_data = add->input_value(0).get_node_shared_ptr();
-        auto add_const = std::dynamic_pointer_cast<opset5::Constant>(add->input_value(1).get_node_shared_ptr());
+        std::shared_ptr<Node> add_const = std::dynamic_pointer_cast<opset5::Constant>(add->input_value(1).get_node_shared_ptr());
         if (!add_const) {
             add_const = std::dynamic_pointer_cast<opset5::Constant>(add->input_value(0).get_node_shared_ptr());
             if (!add_const)
                 return false;
             add_data = add->input_value(1).get_node_shared_ptr();
         }
-        auto add_const_value = add_const->cast_vector<float>();
+        auto const_shape = add_const->get_shape();
+        if (shape_size(const_shape) > 1 &&
+            static_cast<Dimension::value_type>(const_shape.size()) < fq->get_input_partial_shape(0).rank().get_length()) {
+            const_shape.insert(const_shape.begin(), fq->get_input_partial_shape(0).rank().get_length() - const_shape.size(), 1);
+            add_const = std::make_shared<opset5::Reshape>(add_const, op::Constant::create(element::u64, Shape{const_shape.size()}, const_shape), false);
+        }
         auto new_input_low = std::make_shared<opset5::Subtract>(fq->input_value(1), add_const);
         auto new_input_high = std::make_shared<opset5::Subtract>(fq->input_value(2), add_const);
 
