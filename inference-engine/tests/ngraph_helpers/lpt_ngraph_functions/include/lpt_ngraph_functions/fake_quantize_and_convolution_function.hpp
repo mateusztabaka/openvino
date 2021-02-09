@@ -37,7 +37,7 @@ public:
         const DequantizationOperations::Convert& convertOnWeights,
         const DequantizationOperations& dequantizationOnWeights,
         const DequantizationOperations& dequantizationAfter,
-        const std::string operation = "Convolution");
+        const std::string operation = "Convolution", bool multiplyAfter = false);
 };
 
 }  // namespace subgraph
