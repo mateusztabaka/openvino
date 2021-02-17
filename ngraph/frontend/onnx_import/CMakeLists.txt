@@ -59,8 +59,8 @@ if(COMMAND ie_faster_build)
     )
 endif()
 
-target_link_libraries(onnx_importer PRIVATE onnx_common ngraph::builder
-                                    PUBLIC ngraph)
+target_link_libraries(onnx_importer PRIVATE ngraph::builder
+                                    PUBLIC ngraph onnx_common)
 
 set(ONNX_INSTALL_INCLUDE "${NGRAPH_INSTALL_INCLUDE}/ngraph/frontend")
 target_include_directories(onnx_importer SYSTEM PUBLIC $<BUILD_INTERFACE:${ONNX_IMPORT_INCLUDE_DIR}>
@@ -69,10 +69,13 @@ target_include_directories(onnx_importer SYSTEM PUBLIC $<BUILD_INTERFACE:${ONNX_
 target_include_directories(onnx_importer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # onnx-related directories
-target_include_directories(onnx_importer
-SYSTEM PRIVATE 
-        $<TARGET_PROPERTY:onnx_common,INTERFACE_INCLUDE_DIRECTORIES>)
+target_include_directories(onnx_importer PRIVATE
+                $<TARGET_PROPERTY:onnx,INTERFACE_INCLUDE_DIRECTORIES>
+                $<TARGET_PROPERTY:onnx_proto,INTERFACE_INCLUDE_DIRECTORIES>
+                ${Protobuf_INCLUDE_DIRS}
+                ${NGRAPH_INCLUDE_PATH})
 
+target_compile_definitions(onnx_importer PRIVATE -DONNX_ML=${ONNX_ML} -DONNX_NAMESPACE=${ONNX_NAMESPACE})
 target_compile_definitions(onnx_importer PRIVATE ONNX_OPSET_VERSION=${ONNX_OPSET_VERSION})
 
 if(NGRAPH_USE_PROTOBUF_LITE)

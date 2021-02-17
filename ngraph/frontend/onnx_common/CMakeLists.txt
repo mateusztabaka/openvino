@@ -32,10 +32,12 @@ target_include_directories(${TARGET_NAME} SYSTEM PUBLIC $<BUILD_INTERFACE:${ONNX
                                                        $<INSTALL_INTERFACE:${ONNX_COMMON_INSTALL_INCLUDE}>)
 target_include_directories(${TARGET_NAME} PRIVATE ${ONNX_COMMON_SRC_DIR})
 
-target_link_libraries(${TARGET_NAME} PUBLIC onnx PRIVATE ngraph)
+target_link_libraries(${TARGET_NAME} PRIVATE -Wl,--whole-archive
+                                             onnx
+                                             -Wl,--no-whole-archive
+                                     PRIVATE ngraph)
 
-target_include_directories(${TARGET_NAME}
-        SYSTEM PRIVATE
+target_include_directories(${TARGET_NAME} SYSTEM PRIVATE
                 $<TARGET_PROPERTY:onnx,INTERFACE_INCLUDE_DIRECTORIES>
                 $<TARGET_PROPERTY:onnx_proto,INTERFACE_INCLUDE_DIRECTORIES>
                 ${Protobuf_INCLUDE_DIRS}
