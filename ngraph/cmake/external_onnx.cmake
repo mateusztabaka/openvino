@@ -46,6 +46,11 @@ macro(onnx_set_target_properties)
         target_compile_options(onnx PRIVATE -Wno-unused-variable -Wno-unused-parameter)
         target_compile_options(onnx_proto PRIVATE -Wno-unused-variable)
     endif()
+    set_target_properties(onnx onnx_proto PROPERTIES
+                          CXX_VISIBILITY_PRESET default
+                          C_VISIBILITY_PRESET default
+                          VISIBILITY_INLINES_HIDDEN OFF)
+
 endmacro()
 
 FetchContent_GetProperties(ext_onnx)
@@ -66,3 +71,8 @@ endif()
 
 set(ONNX_INCLUDE_DIR ${ext_onnx_SOURCE_DIR})
 set(ONNX_PROTO_INCLUDE_DIR ${ext_onnx_BINARY_DIR})
+install(TARGETS onnx onnx_proto
+        LIBRARY DESTINATION ${NGRAPH_INSTALL_LIB} COMPONENT ngraph)
+if (NGRAPH_EXPORT_TARGETS_ENABLE)
+    export(TARGETS onnx onnx_proto NAMESPACE ngraph:: APPEND FILE "${NGRAPH_TARGETS_FILE}")
+endif()

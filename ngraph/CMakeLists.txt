@@ -313,6 +313,10 @@ if(NOT DEFINED EXTERNAL_PROJECTS_ROOT)
     set(EXTERNAL_PROJECTS_ROOT ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
+if (NGRAPH_EXPORT_TARGETS_ENABLE)
+    set(NGRAPH_TARGETS_FILE "${CMAKE_CURRENT_BINARY_DIR}/ngraphTargets.cmake")
+endif()
+
 if (NGRAPH_ONNX_IMPORT_ENABLE)
     if (MSVC)
         # When we build dll libraries. These flags make sure onnx and protobuf build with /MD, not /MT.
@@ -327,8 +331,6 @@ if (NGRAPH_ONNX_IMPORT_ENABLE)
         endif()
     endif()
 
-    set(BEFORE_ONNX_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-    set(BUILD_SHARED_LIBS OFF)
     if (NOT NGRAPH_USE_SYSTEM_PROTOBUF)
         include(cmake/external_protobuf.cmake)
     else()
@@ -338,15 +340,13 @@ if (NGRAPH_ONNX_IMPORT_ENABLE)
     if (TARGET ext_protobuf)
         add_dependencies(onnx ext_protobuf)
     endif()
-    set(BUILD_SHARED_LIBS ${BEFORE_ONNX_BUILD_SHARED_LIBS})
-    unset(BEFORE_ONNX_BUILD_SHARED_LIBS)
 endif()
 
 add_subdirectory(core)
+add_subdirectory(frontend)
 
 if (NGRAPH_EXPORT_TARGETS_ENABLE)
     include(CMakePackageConfigHelpers)
-    set(NGRAPH_TARGETS_FILE "${CMAKE_CURRENT_BINARY_DIR}/ngraphTargets.cmake")
     export(TARGETS ngraph NAMESPACE ngraph:: FILE "${NGRAPH_TARGETS_FILE}")
 
     if(BUILD_SHARED_LIBS)
@@ -370,8 +370,6 @@ if (NGRAPH_EXPORT_TARGETS_ENABLE)
         DESTINATION ${NGRAPH_COMPONENT_PREFIX}cmake
         COMPONENT ngraph)
 endif()
-
-add_subdirectory(frontend)
 
 if (NGRAPH_TEST_UTIL_ENABLE)
     set(BEFORE_GTEST_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
