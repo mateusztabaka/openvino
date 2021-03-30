@@ -17,10 +17,10 @@ NGRAPH_RTTI_DEFINITION(ngraph::pass::PullTransposeThroughFQUp, "PullTransposeThr
 ngraph::pass::PullTransposeThroughFQUp::PullTransposeThroughFQUp() {
     MATCHER_SCOPE(PullTransposeThroughFQUp);
     auto m_fq = pattern::wrap_type<opset1::FakeQuantize>({pattern::any_input(pattern::has_static_rank()),
-                                                          pattern::any_input(pattern::has_static_rank()),
-                                                          pattern::any_input(pattern::has_static_rank()),
-                                                          pattern::any_input(pattern::has_static_rank()),
-                                                          pattern::any_input(pattern::has_static_rank())},
+                                                          pattern::any_input(pattern::has_static_shape()),
+                                                          pattern::any_input(pattern::has_static_shape()),
+                                                          pattern::any_input(pattern::has_static_shape()),
+                                                          pattern::any_input(pattern::has_static_shape())},
                                                           pattern::consumers_count(1));
     auto m_transpose = pattern::wrap_type<opset1::Transpose>({m_fq, pattern::wrap_type<opset1::Constant>()});
 
@@ -28,6 +28,23 @@ ngraph::pass::PullTransposeThroughFQUp::PullTransposeThroughFQUp() {
         auto & pattern_map = m.get_pattern_value_map();
         auto transpose = pattern_map[m_transpose].get_node_shared_ptr();
         auto fq = pattern_map[m_fq].get_node_shared_ptr();
+
+        auto is_scalar = [] (const Output<Node>& node) -> bool {
+            return shape_size(node.get_shape()) == 1;
+        };
+        std::vector<bool> are_inputs_scalars{
+            is_scalar(fq->input_value(1)),
+            is_scalar(fq->input_value(2)),
+            is_scalar(fq->input_value(3)),
+            is_scalar(fq->input_value(4))};
+        bool all_inputs_are_scalars = std::all_of(are_inputs_scalars.begin(), are_inputs_scalars.end(), [] (bool b) { return b; });
+        auto perm_const = std::dynamic_pointer_cast<opset1::Constant>(transpose->input_value(1).get_node_shared_ptr());
+        if (!perm_const)
+            return false;
+        auto perm = perm_const->cast_vector<int64_t>();
+        if (!all_inputs_are_scalars && (perm[0] != 0 || perm[1] != 1)) {
+                return false;
+        }
 
         auto input_rank = fq->input(0).get_partial_shape().rank().get_length();
 
