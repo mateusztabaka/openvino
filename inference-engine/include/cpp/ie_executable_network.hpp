@@ -16,6 +16,7 @@
 
 #include "cpp/ie_cnn_network.h"
 #include "cpp/ie_infer_request.hpp"
+#include "ie_iexecutable_network.hpp"
 
 namespace InferenceEngine {
 namespace details {
