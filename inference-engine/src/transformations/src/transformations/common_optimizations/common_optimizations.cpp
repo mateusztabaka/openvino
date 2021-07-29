@@ -44,6 +44,7 @@
 #include "transformations/common_optimizations/split_squeeze_concat_fusion.hpp"
 #include "transformations/common_optimizations/transpose_to_reshape.hpp"
 #include "transformations/common_optimizations/strides_optimization.hpp"
+#include "transformations/common_optimizations/mul_conv_fusion.hpp"
 #include "transformations/op_conversions/bidirectional_sequences_decomposition.hpp"
 #include "transformations/op_conversions/convert_pad_to_group_conv.hpp"
 #include "transformations/op_conversions/convert_divide.hpp"
@@ -76,6 +77,7 @@
 
 #include <ngraph/pass/manager.hpp>
 #include <ngraph/pass/constant_folding.hpp>
+#include <ngraph/opsets/opset8.hpp>
 #include <transformations/common_optimizations/weights_dequantize_to_fake_quantize.hpp>
 #include <transformations/common_optimizations/simplify_shape_of_sub_graph.hpp>
 
@@ -176,6 +178,7 @@ bool ngraph::pass::CommonOptimizations::run_on_function(std::shared_ptr<ngraph::
     conv_fusions->add_matcher<ngraph::pass::GroupConvolutionMultiplyFusion>();
     conv_fusions->add_matcher<ngraph::pass::ConvolutionBackpropDataMultiplyFusion>();
     conv_fusions->add_matcher<ngraph::pass::GroupConvolutionBackpropDataMultiplyFusion>();
+    conv_fusions->add_matcher<ngraph::pass::MultiplyConvolutionFusion<opset8::Convolution>>();
     conv_fusions->set_name("ngraph::pass::ConvFusions");
 
     manager.register_pass<ngraph::pass::ConstantFolding>();
