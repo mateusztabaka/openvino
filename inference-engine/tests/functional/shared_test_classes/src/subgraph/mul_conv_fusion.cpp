@@ -56,7 +56,7 @@ void MulConvFusion::SetUp() {
     auto cloned_function = ngraph::clone_function(*function);
 
     ngraph::pass::Manager manager;
-    manager.register_pass<ngraph::pass::MultiplyConvolutionFusion<ngraph::opset8::Convolution>>();
+    manager.register_pass<ngraph::pass::MultiplyConvolutionFusion>();
     manager.run_passes(cloned_function);
 
     ASSERT_EQ(cloned_function->get_ops().size(), 4);
