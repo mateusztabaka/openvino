@@ -14,7 +14,7 @@ std::string MulConvFusion::getTestCaseName(const testing::TestParamInfo<MulConvF
     ngraph::Shape input_shape, weights_shape, const_shape;
     ngraph::element::Type precision;
     std::string device;
-    std::tie(conv_type, input_shape, weights_shape, const_shape, precision, device) = obj.param;
+    std::tie(conv_type, input_shape, weights_shape, const_shape, precision, std::ignore, device) = obj.param;
     std::ostringstream results;
 
     results << conv_type.name << "_";
@@ -30,7 +30,8 @@ void MulConvFusion::SetUp() {
     ngraph::NodeTypeInfo conv_type;
     ngraph::Shape input_shape, weights_shape, const_shape;
     ngraph::element::Type precision;
-    std::tie(conv_type, input_shape, weights_shape, const_shape, precision, targetDevice) = this->GetParam();
+    bool is_negative;
+    std::tie(conv_type, input_shape, weights_shape, const_shape, precision, is_negative, targetDevice) = this->GetParam();
     auto param = std::make_shared<ngraph::opset8::Parameter>(precision, input_shape);
     auto spatial_dims = input_shape.size() - 2;
 
@@ -59,6 +60,13 @@ void MulConvFusion::SetUp() {
     manager.register_pass<ngraph::pass::MultiplyConvolutionFusion>();
     manager.run_passes(cloned_function);
 
-    ASSERT_EQ(cloned_function->get_ops().size(), 4);
+    bool functions_equal = false;
+    std::tie(functions_equal, std::ignore) = compare_functions(function, cloned_function, true);
+    if (!is_negative) {
+        ASSERT_EQ(cloned_function->get_ops().size(), 4);
+        ASSERT_FALSE(functions_equal);
+    } else {
+        ASSERT_TRUE(functions_equal);
+    }
 }
 } // namespace SubgraphTestsDefinitions

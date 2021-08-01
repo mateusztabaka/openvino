@@ -19,6 +19,7 @@ typedef std::tuple<
         ngraph::Shape,              // Weights shape
         ngraph::Shape,              // Const shape
         ngraph::element::Type,      // Network precision
+        bool,                       // True if test is negative
         std::string                 // Device name
         > MulConvFusionParams;
 

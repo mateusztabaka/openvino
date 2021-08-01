@@ -35,7 +35,7 @@ ngraph::pass::MultiplyConvolutionFusion::MultiplyConvolutionFusion() {
 
         const auto& weights_shape = weights.get_shape();
         const auto& mul_const_shape = mul_const.get_shape();
-        if (mul_const_shape.size() > weights_shape.size() || op::util::check_for_broadcast(weights_shape, mul_const_shape)) {
+        if (op::util::check_for_broadcast(weights_shape, mul_const_shape)) {
             return false;
         }
 

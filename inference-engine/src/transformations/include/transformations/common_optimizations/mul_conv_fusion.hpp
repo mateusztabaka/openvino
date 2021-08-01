@@ -19,6 +19,58 @@ class TRANSFORMATIONS_API MultiplyConvolutionFusion;
 }  // namespace pass
 }  // namespace ngraph
 
+/**
+ * @ingroup ie_transformation_common_api
+ * @brief MultiplyConvolutionFusion transformation replaces following graph:
+ *
+ *   +-------+   +----------+
+ *   | Input |   | Constant |
+ *   +-------+   +----------+
+ *       |            |
+ *       ------  ------
+ *            |  |
+ *            v  v
+ *         +----------+            +---------+
+ *         | Multiply |            | Weights |
+ *         +----------+            +---------+
+ *              |                       |
+ *              -----------    ----------
+ *                        |    |
+ *                        v    v
+ *                   +----------------+
+ *                   | Convolution Op |
+ *                   +----------------+
+ *
+ * to following:
+ *
+ *                           +---------+   +----------+
+ *                           | Weights |   | Constant |
+ *                           +---------+   +----------+
+ *                                |            |
+ *                                ------  ------
+ *                                     |  |
+ *                                     v  v
+ *          +-------+              +----------+
+ *          | Input |              | Multiply |
+ *          +-------+              +----------+
+ *              |                       |
+ *              -----------    ----------
+ *                        |    |
+ *                        v    v
+ *                   +----------------+
+ *                   | Convolution Op |
+ *                   +----------------+
+ *
+ * where 'Convolution Op' is one of:
+ * - Convolution
+ * - ConvolutionBackpropData
+ * - GroupConvolution
+ * - GroupConvolutionBackpropData
+ *
+ * Restrictions:
+ * - weights' shape is static
+ * - constant input to Multiply has to be broadcastable to weights
+ */
 class ngraph::pass::MultiplyConvolutionFusion: public ngraph::pass::MatcherPass {
 public:
     NGRAPH_RTTI_DECLARATION;
