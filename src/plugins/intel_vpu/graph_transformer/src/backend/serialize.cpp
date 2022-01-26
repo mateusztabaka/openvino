@@ -393,6 +393,19 @@ void BackEnd::serialize(
         serializeParamsAndResults(model, blobHdr, blob);
     }
 
+    printf("before blob.size %08lx file_size %08x\n", blob.size(), blobHdr.file_size);
+    auto blob_size = blob.size();
+    auto alignment_str = getenv("ALIGNMENT");
+    if (alignment_str) {
+        std::cout << "ALIGNMENTTT\n";
+        auto alignment = static_cast<size_t>(atoi(alignment_str));
+        auto add = ((blob_size & 0xff) > (alignment - 1)) ? (256 - (blob_size & 0xff) + alignment - 1) : 0;
+        blob_size = alignVal(blob_size + add, alignment);
+        blob.resize(blob_size, 0);
+    }
+
+    printf("blob.size %08lx file_size %08x\n", blob.size(), blobHdr.file_size);
+
     blobHeader.first = blob.data();
     blobHeader.second = sizeof(ElfN_Ehdr) + sizeof(mv_blob_header);
 }
