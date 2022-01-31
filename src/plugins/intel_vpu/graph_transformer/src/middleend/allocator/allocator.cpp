@@ -83,6 +83,8 @@ void Allocator::updateChildDataAllocation(const Data& data) {
             IE_ASSERT(false) << "Unsupported enum value";
         }
 
+        if (child->hasHwOpConsumers())
+            memoryOffset = alignVal(memoryOffset, HWOP_DATA_ALIGNMENT);
         child->setDataAllocationInfo({parent->dataLocation().location, memoryOffset});
 
         updateChildDataAllocation(child);
@@ -200,6 +202,8 @@ bool Allocator::allocateData(const Data& data) {
 
             auto finalByteSize = calcAllocationSize(data);
 
+            if (data->hasHwOpConsumers())
+                _blobMemOffset = alignVal(_blobMemOffset, HWOP_DATA_ALIGNMENT);
             data->setDataAllocationInfo({Location::Blob, _blobMemOffset});
             _blobMemOffset += finalByteSize;
 
