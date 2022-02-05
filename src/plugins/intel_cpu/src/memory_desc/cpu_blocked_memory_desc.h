@@ -21,9 +21,9 @@ public:
         return std::make_shared<CpuBlockedMemoryDesc>(*this);
     }
 
-    bool isCompatible(const MemoryDesc& rhs) const override;
-    bool isCompatible(const CpuBlockedMemoryDesc &rhs) const;
-    bool isCompatible(const DnnlBlockedMemoryDesc &rhs) const;
+    bool isCompatible(const MemoryDesc& rhs, bool checkPrecision = true) const override;
+    bool isCompatible(const CpuBlockedMemoryDesc &rhs, bool checkPrecision = true) const;
+    bool isCompatible(const DnnlBlockedMemoryDesc &rhs, bool checkPrecision = true) const;
 
     InferenceEngine::Precision getPrecision() const override {
         return precision;

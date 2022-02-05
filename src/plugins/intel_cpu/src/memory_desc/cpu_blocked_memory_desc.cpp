@@ -88,22 +88,22 @@ bool CpuBlockedMemoryDesc::isDefinedImp() const {
     return defined;
 }
 
-bool CpuBlockedMemoryDesc::isCompatible(const MemoryDesc& rhs) const {
+bool CpuBlockedMemoryDesc::isCompatible(const MemoryDesc& rhs, bool checkPrecision) const {
     const MemoryDesc* pRhs = &rhs;
     if (auto cpuBlkDesc = dynamic_cast<const CpuBlockedMemoryDesc*>(pRhs)) {
-        return isCompatible(*cpuBlkDesc);
+        return isCompatible(*cpuBlkDesc, checkPrecision);
     } else if (auto dnnlBlkDesc = dynamic_cast<const DnnlBlockedMemoryDesc*>(pRhs)) {
-        return isCompatible(*dnnlBlkDesc);
+        return isCompatible(*dnnlBlkDesc, checkPrecision);
     } else {
         return false;
     }
 }
 
-bool CpuBlockedMemoryDesc::isCompatible(const CpuBlockedMemoryDesc &rhs) const {
-    return BlockedMemoryDesc::isCompatible(rhs);
+bool CpuBlockedMemoryDesc::isCompatible(const CpuBlockedMemoryDesc &rhs, bool checkPrecision) const {
+    return BlockedMemoryDesc::isCompatible(rhs, checkPrecision);
 }
 
-bool CpuBlockedMemoryDesc::isCompatible(const DnnlBlockedMemoryDesc &rhs) const {
+bool CpuBlockedMemoryDesc::isCompatible(const DnnlBlockedMemoryDesc &rhs, bool checkPrecision) const {
     return rhs.isCompatible(*this);
 }
 

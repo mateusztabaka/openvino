@@ -274,7 +274,7 @@ void MKLDNNNode::selectPreferPrimitiveDescriptor(const std::vector<impl_desc_typ
                         auto& curDesc = getSupportedPrimitiveDescriptors()[i].getConfig().inConfs[j].desc;
                         auto& parentDesc = parent_spd->getConfig().outConfs[inNum].desc;
 
-                        if (curDesc->isCompatible(*parentDesc)) {
+                        if (curDesc->isCompatible(*parentDesc, false /* checkPrecision */)) {
                             equalsLocalFormatCount++;
                         }
                     }

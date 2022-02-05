@@ -221,25 +221,29 @@ DnnlBlockedMemoryDesc::DnnlBlockedMemoryDesc(const Shape& shape, mkldnn::memory:
     initBlockedParams();
 }
 
-bool DnnlBlockedMemoryDesc::isCompatible(const MemoryDesc& rhs) const {
+bool DnnlBlockedMemoryDesc::isCompatible(const MemoryDesc& rhs, bool checkPrecision) const {
     if (auto desc = dynamic_cast<const DnnlBlockedMemoryDesc*>(&rhs)) {
-        return isCompatible(*desc);
+        return isCompatible(*desc, checkPrecision);
     } else if (auto desc = dynamic_cast<const CpuBlockedMemoryDesc*>(&rhs)) {
-        return isCompatible(*desc);
+        return isCompatible(*desc, checkPrecision);
     } else {
         return false;
     }
 }
 
-bool DnnlBlockedMemoryDesc::isCompatible(const CpuBlockedMemoryDesc& rhs) const {
-    return this->desc.data.extra.flags == dnnl_memory_extra_flag_none && BlockedMemoryDesc::isCompatible(rhs);
+bool DnnlBlockedMemoryDesc::isCompatible(const CpuBlockedMemoryDesc& rhs, bool checkPrecision) const {
+    return this->desc.data.extra.flags == dnnl_memory_extra_flag_none && BlockedMemoryDesc::isCompatible(rhs, checkPrecision);
 }
 
-bool DnnlBlockedMemoryDesc::isCompatible(const DnnlBlockedMemoryDesc& rhs) const {
+bool DnnlBlockedMemoryDesc::isCompatible(const DnnlBlockedMemoryDesc& rhs, bool checkPrecision) const {
     using namespace dnnl;
     using namespace impl;
     using namespace impl::utils;
-    if (this->getShape() != rhs.getShape() || this->getPrecision() != rhs.getPrecision()) {
+    if (this->getShape() != rhs.getShape()) {
+        return false;
+    }
+
+    if (checkPrecision && this->getPrecision() != rhs.getPrecision()) {
         return false;
     }
 

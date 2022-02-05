@@ -32,7 +32,7 @@ public:
 
     InferenceEngine::Precision getPrecision() const override;
 
-    bool isCompatible(const MemoryDesc& rhs) const override;
+    bool isCompatible(const MemoryDesc& rhs, bool checkPrecision = true) const override;
 
     size_t getMaxMemSize() const override;
 

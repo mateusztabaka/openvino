@@ -70,7 +70,7 @@ public:
 
     virtual MemoryDescPtr cloneWithNewPrecision(const InferenceEngine::Precision prec) const = 0;
 
-    virtual bool isCompatible(const MemoryDesc& rhs) const = 0;
+    virtual bool isCompatible(const MemoryDesc& rhs, bool checkPrecision = true) const = 0;
 
     // Checks that all dimensions, offsets, strides, etc are defined (!= UNDEFINED_DIM)
     bool isDefined() const {

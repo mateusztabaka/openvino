@@ -28,9 +28,15 @@ size_t DnnlMemoryDesc::getElementOffset(size_t elemNumber) const {
     return wrapped.off_l(elemNumber);
 }
 
-bool DnnlMemoryDesc::isCompatible(const MemoryDesc &rhs) const {
+bool DnnlMemoryDesc::isCompatible(const MemoryDesc &rhs, bool checkPrecision) const {
     if (MemoryDescType::Mkldnn == rhs.getType()) {
-        return this->desc == rhs.as<DnnlMemoryDesc>()->desc;
+        if (checkPrecision || this->desc.data_type() == rhs.as<DnnlMemoryDesc>()->desc.data_type()) {
+            return this->desc == rhs.as<DnnlMemoryDesc>()->desc;
+        } else {
+            auto tmp = rhs.as<DnnlMemoryDesc>()->desc;
+            tmp.data.data_type = this->desc.data.data_type;
+            return this->desc == tmp;
+        }
     } else {
         return false;
     }

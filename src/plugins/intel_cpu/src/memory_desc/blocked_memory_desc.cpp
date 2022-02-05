@@ -7,8 +7,11 @@
 
 using namespace MKLDNNPlugin;
 
-bool BlockedMemoryDesc::isCompatible(const BlockedMemoryDesc &rhs) const {
-    if (this->getShape() != rhs.getShape() || this->getPrecision() != rhs.getPrecision())
+bool BlockedMemoryDesc::isCompatible(const BlockedMemoryDesc &rhs, bool checkPrecision) const {
+    if (this->getShape() != rhs.getShape())
+        return false;
+
+    if (checkPrecision && this->getPrecision() != rhs.getPrecision())
         return false;
 
     if (!dimsEqualWeak(this->getBlockDims(), rhs.getBlockDims())) {

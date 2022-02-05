@@ -85,7 +85,7 @@ protected:
      * Doesn't perform descs specific attributes check
      * @return true if compatible, otherwise false
      */
-    bool isCompatible(const BlockedMemoryDesc &rhs) const;
+    bool isCompatible(const BlockedMemoryDesc &rhs, bool checkPrecision = true) const;
 
     mutable VectorDims blockedDims;
     mutable VectorDims strides;
