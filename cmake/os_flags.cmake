@@ -152,6 +152,14 @@ else()
         ie_add_compiler_flags(-Wswitch)
     elseif(UNIX)
         ie_add_compiler_flags(-Wuninitialized -Winit-self)
+        # silence warning from inference-engine/thirdparty/ade
+        ie_add_compiler_flags(-Wno-error=redundant-move)
+        # silence warning from inference-engine/thirdparty/mkl-dnn
+        ie_add_compiler_flags(-Wno-error=stringop-overflow)
+        # silence warning from inference-engine/thirdparty/clDNN
+        ie_add_compiler_flags(-Wno-error=deprecated-copy)
+        # silence warning from gna_plugin
+        ie_add_compiler_flags(-Wno-error=deprecated-declarations)
         if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             ie_add_compiler_flags(-Wno-error=switch)
         else()
