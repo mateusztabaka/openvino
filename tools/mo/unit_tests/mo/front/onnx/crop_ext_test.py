@@ -40,7 +40,7 @@ class CropONNXExtractorTest(unittest.TestCase):
     def _extract(inp):
         node = __class__._create_node(inp)
         CropFrontExtractor.extract(node)
-        return node.graph.node[node.id]
+        return node.graph.nodes[node.id]
 
     def _match(self, out, ref):
         for key in ref.keys():

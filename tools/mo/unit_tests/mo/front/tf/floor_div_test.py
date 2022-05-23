@@ -39,7 +39,7 @@ class TestFloorDiv(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'output', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(type='Floor')[0]]['name'] == 'my_floor_div')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(type='Floor')[0]]['name'] == 'my_floor_div')
 
     def test_floor_div_test_2(self):
         # Test with two same inputs from one placeholder
@@ -59,4 +59,4 @@ class TestFloorDiv(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'output', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(type='Floor')[0]]['name'] == 'my_floor_div')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(type='Floor')[0]]['name'] == 'my_floor_div')

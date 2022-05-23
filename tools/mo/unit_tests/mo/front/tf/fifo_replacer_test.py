@@ -40,7 +40,7 @@ class TestFIFOQueueReplacement(unittest.TestCase):
         after_pattern = graph.nodes()
         self.assertEqual(2, len(after_pattern))
         try:
-            new_ph_dict = graph.node[[u for u, v in graph.in_edges('image_batch')][0]]
+            new_ph_dict = graph.nodes[[u for u, v in graph.in_edges('image_batch')][0]]
         except Exception as e:
             self.fail("Can't get new placeholder. Broken edge. Additional information: {}".format(e))
         self.assertEqual(new_ph_dict['name'], 'batch_join/fifo_queue')
@@ -53,7 +53,7 @@ class TestFIFOQueueReplacement(unittest.TestCase):
         after_pattern = graph.nodes()
         self.assertEqual(2, len(after_pattern))
         try:
-            new_ph_dict = graph.node[[u for u, v in graph.in_edges('image_batch')][0]]
+            new_ph_dict = graph.nodes[[u for u, v in graph.in_edges('image_batch')][0]]
         except Exception as e:
             self.fail("Can't get new placeholder. Broken edge. Additional information: {}".format(e))
         self.assertEqual(new_ph_dict['name'], 'batch_join/fifo_queue')
@@ -79,7 +79,7 @@ class TestFIFOQueueReplacement(unittest.TestCase):
         after_pattern = graph.nodes()
         self.assertEqual(2, len(after_pattern))
         try:
-            new_ph_dict = graph.node[[u for u, v in graph.in_edges('image_batch')][0]]
+            new_ph_dict = graph.nodes[[u for u, v in graph.in_edges('image_batch')][0]]
         except Exception as e:
             self.fail("Can't get new placeholder. Broken edge. Additional information: {}".format(e))
         self.assertEqual(new_ph_dict['name'], 'batch_join/fifo_queue')

@@ -111,7 +111,7 @@ def build_graph_with_attrs(nodes_with_attrs: list, edges_with_attrs: list, new_n
         for node_name, new_attrs in update_nodes_attributes:
             assert (node_name in graph.nodes())
             for attr, value in new_attrs.items():
-                graph.node[node_name][attr] = value
+                graph.nodes[node_name][attr] = value
 
     for node_id in graph.nodes():
         node = Node(graph, node_id)
@@ -183,7 +183,7 @@ def build_graph(nodes_attrs: dict, edges: list, update_attributes: dict = None, 
         for node_name, new_attrs in update_attributes.items():
             assert (node_name in graph.nodes()), 'Node with name "{}" is not in the graph'.format(node_name)
             for attr, value in new_attrs.items():
-                graph.node[node_name][attr] = value
+                graph.nodes[node_name][attr] = value
 
     for node in graph.get_op_nodes():
         # Add in_ports attribute
@@ -224,7 +224,7 @@ def build_graph_with_edge_attrs(nodes_attrs: dict, edges: list, update_attribute
         for node_name, new_attrs in update_attributes.items():
             assert (node_name in graph.nodes())
             for attr, value in new_attrs.items():
-                graph.node[node_name][attr] = value
+                graph.nodes[node_name][attr] = value
 
     for node in graph.get_op_nodes():
         # Add in_ports attribute

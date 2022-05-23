@@ -70,7 +70,7 @@ class NonConstBeginStridedSliceReplacementTests(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'result', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(op='Squeeze')[0]]['name'] ==
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(op='Squeeze')[0]]['name'] ==
                         'non_const_begin_strided_slice')
 
     def test2_not_applied_transform(self):

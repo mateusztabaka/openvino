@@ -40,14 +40,14 @@ class TestTileInfer(unittest.TestCase):
                             {'tile_values': {'value': np.array([7, 1, 1, 1])}})
         tile_node = Node(graph, 'tile')
         Tile.infer(tile_node)
-        self.assertTrue(np.all(np.array([70, 20, 30, 40]) == graph.node['tile_out']['shape']))
+        self.assertTrue(np.all(np.array([70, 20, 30, 40]) == graph.nodes['tile_out']['shape']))
 
     def test_tile_infer_correct_2(self):
         graph = build_graph(nodes_attributes, edges,
                             {'tile_values': {'value': np.array([1, 7, 1, 1])}})
         tile_node = Node(graph, 'tile')
         Tile.infer(tile_node)
-        self.assertTrue(np.all(np.array([10, 140, 30, 40]) == graph.node['tile_out']['shape']))
+        self.assertTrue(np.all(np.array([10, 140, 30, 40]) == graph.nodes['tile_out']['shape']))
 
     def test_tile_infer_correct_2d_tensor(self):
         graph = build_graph(nodes_attributes, edges,
@@ -55,28 +55,28 @@ class TestTileInfer(unittest.TestCase):
                              'tile_values': {'value': np.array([5, 1])}})
         tile_node = Node(graph, 'tile')
         Tile.infer(tile_node)
-        self.assertTrue(np.all(np.array([15, 7]) == graph.node['tile_out']['shape']))
+        self.assertTrue(np.all(np.array([15, 7]) == graph.nodes['tile_out']['shape']))
 
     def test_tile_infer_all_ones(self):
         graph = build_graph(nodes_attributes, edges,
                             {'tile_values': {'value': np.array([1, 1, 1, 1])}})
         tile_node = Node(graph, 'tile')
         Tile.infer(tile_node)
-        self.assertTrue(np.all(np.array([10, 20, 30, 40]) == graph.node['tile_out']['shape']))
+        self.assertTrue(np.all(np.array([10, 20, 30, 40]) == graph.nodes['tile_out']['shape']))
 
     def test_tile_infer_two_non_one(self):
         graph = build_graph(nodes_attributes, edges,
                             {'tile_values': {'value': np.array([2, 1, 1, 2])}})
         tile_node = Node(graph, 'tile')
         Tile.infer(tile_node)
-        self.assertTrue(np.all(np.array([20, 20, 30, 80]) == graph.node['tile_out']['shape']))
+        self.assertTrue(np.all(np.array([20, 20, 30, 80]) == graph.nodes['tile_out']['shape']))
 
     def test_tile_infer_three_non_one(self):
         graph = build_graph(nodes_attributes, edges,
                             {'tile_values': {'value': np.array([2, 1, 5, 2])}})
         tile_node = Node(graph, 'tile')
         Tile.infer(tile_node)
-        self.assertTrue(np.all(np.array([20, 20, 150, 80]) == graph.node['tile_out']['shape']))
+        self.assertTrue(np.all(np.array([20, 20, 150, 80]) == graph.nodes['tile_out']['shape']))
 
     def test_tile_infer_none_input_shape(self):
         graph = build_graph(nodes_attributes, edges,
@@ -93,7 +93,7 @@ class TestTileInfer(unittest.TestCase):
                              'tile_values': {'value': tile_values}})
         tile_node = Node(graph, 'tile')
         Tile.infer(tile_node)
-        self.assertTrue(np.all(np.tile(input_data, tile_values) == graph.node['tile_out']['value']))
+        self.assertTrue(np.all(np.tile(input_data, tile_values) == graph.nodes['tile_out']['value']))
 
     def test_tile_infer_values_const_propagation(self):
         """
@@ -106,7 +106,7 @@ class TestTileInfer(unittest.TestCase):
                              'tile_values': {'value': tile_values}})
         tile_node = Node(graph, 'tile')
         Tile.infer(tile_node)
-        self.assertTrue(np.all(np.tile(input_data, tile_values) == graph.node['tile_out']['value']))
+        self.assertTrue(np.all(np.tile(input_data, tile_values) == graph.nodes['tile_out']['value']))
 
     def test_tile_infer_undefined_tile_values(self):
         graph = build_graph(nodes_attributes, edges,
@@ -119,14 +119,14 @@ class TestTileInfer(unittest.TestCase):
                             {'tile_values': {'value': np.array([1, 2, 3]), 'shape': np.array([3])}})
         tile_node = Node(graph, 'tile')
         Tile.infer(tile_node)
-        self.assertTrue(np.all(np.array([10, 20, 60, 120]) == graph.node['tile_out']['shape']))
+        self.assertTrue(np.all(np.array([10, 20, 60, 120]) == graph.nodes['tile_out']['shape']))
 
     def test_tile_infer_one_input_correct(self):
         graph = build_graph(nodes_attributes, attributed_edges,
                             {'tile': {'axis': 1, 'tiles': 7}})
         tile_node = Node(graph, 'tile')
         AttributedTile.infer(tile_node)
-        self.assertTrue(np.all(np.array([10, 140, 30, 40]) == graph.node['tile_out']['shape']))
+        self.assertTrue(np.all(np.array([10, 140, 30, 40]) == graph.nodes['tile_out']['shape']))
         self.assertEqual(tile_node.axis, 1)
         self.assertEqual(tile_node.tiles, 7)
 

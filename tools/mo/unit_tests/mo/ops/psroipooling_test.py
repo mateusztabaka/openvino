@@ -34,7 +34,7 @@ class TestPSROIPooling(unittest.TestCase):
         psroipool_node = Node(graph, 'psroipool')
         PSROIPoolingOp.psroipooling_infer(psroipool_node)
         exp_shape = np.array([100, 4, 15, 15])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -54,7 +54,7 @@ class TestPSROIPooling(unittest.TestCase):
         psroipool_node = Node(graph, 'psroipool')
         PSROIPoolingOp.psroipooling_infer(psroipool_node)
         exp_shape = np.array([100, 15, 15, 4])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -74,5 +74,5 @@ class TestPSROIPooling(unittest.TestCase):
 
         psroipool_node = Node(graph, 'psroipool')
         PSROIPoolingOp.psroipooling_infer(psroipool_node)
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         self.assertIsNone(res_shape)

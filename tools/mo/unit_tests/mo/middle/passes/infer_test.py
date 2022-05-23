@@ -57,7 +57,7 @@ class TestInferPass(UnitTestWithMockedTelemetry):
         ph_shape = np.array([1, 3, 224, 224])
         user_dict = {'node_1': [{'shape': ph_shape}]}
         override_placeholder_shapes(graph, user_dict)
-        res_shape = graph.node['node_1']['shape']
+        res_shape = graph.nodes['node_1']['shape']
         self.assertTrue(np.array_equal(ph_shape, res_shape))
 
     def test_override_placeholder_no_shape(self):
@@ -73,7 +73,7 @@ class TestInferPass(UnitTestWithMockedTelemetry):
                              },
                             nodes_with_edges_only=True)
         out = override_placeholder_shapes(graph, None)
-        res_shape = graph.node['node_1']['shape']
+        res_shape = graph.nodes['node_1']['shape']
         placeholder_shape = np.array([1, 3, 227, 227])
         self.assertIsNone(out)
         self.assertTrue(np.array_equal(placeholder_shape, res_shape))
@@ -94,7 +94,7 @@ class TestInferPass(UnitTestWithMockedTelemetry):
         node_1_shape = np.array([1, 3, 227, 227])
         user_dict = {'some_node': [{'shape': np.zeros((3))}]}
         override_placeholder_shapes(graph, user_dict)
-        res_shape = graph.node['node_1']['shape']
+        res_shape = graph.nodes['node_1']['shape']
         self.assertTrue(np.array_equal(node_1_shape, res_shape))
 
     def test_override_placeholder_shapes_dict(self):
@@ -113,8 +113,8 @@ class TestInferPass(UnitTestWithMockedTelemetry):
             'node_2': [{'shape': placeholder_shape}],
         }
         override_placeholder_shapes(graph, user_shapes)
-        res_shape = graph.node['node_1']['shape']
-        res_shape2 = graph.node['node_2']['shape']
+        res_shape = graph.nodes['node_1']['shape']
+        res_shape2 = graph.nodes['node_2']['shape']
         self.assertTrue(np.array_equal(placeholder_shape, res_shape))
         self.assertTrue(np.array_equal(placeholder_shape, res_shape2))
 
@@ -144,8 +144,8 @@ class TestInferPass(UnitTestWithMockedTelemetry):
         shapes = {}
         batch = None
         override_placeholder_shapes(graph, shapes, batch)
-        res_shape_1 = graph.node['placeholder_1']['shape']
-        res_shape_2 = graph.node['placeholder_2']['shape']
+        res_shape_1 = graph.nodes['placeholder_1']['shape']
+        res_shape_2 = graph.nodes['placeholder_2']['shape']
         self.assertTrue(np.array_equal(self.nodes['placeholder_1']['shape'], res_shape_1))
         self.assertTrue(np.array_equal(self.nodes['placeholder_2']['shape'], res_shape_2))
 
@@ -158,8 +158,8 @@ class TestInferPass(UnitTestWithMockedTelemetry):
                   'placeholder_2': [{'shape': np.array([1, 5, 6, 7])}]}
         batch = 4
         override_placeholder_shapes(graph, shapes, batch)
-        res_shape_1 = graph.node['placeholder_1']['shape']
-        res_shape_2 = graph.node['placeholder_2']['shape']
+        res_shape_1 = graph.nodes['placeholder_1']['shape']
+        res_shape_2 = graph.nodes['placeholder_2']['shape']
         self.assertTrue(np.array_equal(res_shape_1, np.array([4, 2, 3, 4])))
         self.assertTrue(np.array_equal(res_shape_2, np.array([4, 5, 6, 7])))
 
@@ -170,11 +170,11 @@ class TestInferPass(UnitTestWithMockedTelemetry):
         graph = build_graph(self.nodes, self.edges)
         shapes = {'placeholder_1': [{'shape': None}], 'placeholder_2': [{'shape': None}]}
         batch = 4
-        graph.node['placeholder_2']['shape'] = np.array([1, 2, 3, 4])
-        graph.node['placeholder_2']['shape'] = np.array([1, 5, 6, 7])
+        graph.nodes['placeholder_2']['shape'] = np.array([1, 2, 3, 4])
+        graph.nodes['placeholder_2']['shape'] = np.array([1, 5, 6, 7])
         override_placeholder_shapes(graph, shapes, batch)
-        np.testing.assert_array_equal(graph.node['placeholder_1']['shape'], np.array([4, 2, 3, 4]))
-        np.testing.assert_array_equal(graph.node['placeholder_2']['shape'], np.array([4, 5, 6, 7]))
+        np.testing.assert_array_equal(graph.nodes['placeholder_1']['shape'], np.array([4, 2, 3, 4]))
+        np.testing.assert_array_equal(graph.nodes['placeholder_2']['shape'], np.array([4, 5, 6, 7]))
 
     def test_partial_infer(self):
         graph = build_graph(nodes_attributes,

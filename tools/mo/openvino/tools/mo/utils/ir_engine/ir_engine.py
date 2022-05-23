@@ -127,9 +127,9 @@ class IREngine(object):
         for node in nodes:
             out_edges = Node(self.graph, node).get_outputs()
             data_nodes = {}
-            for port in self.graph.node[node]['ports']:
+            for port in self.graph.nodes[node]['ports']:
                 data = self.graph.unique_id(prefix='data_')
-                self.graph.add_node(data, **{'kind': 'data', 'shape': self.graph.node[node]['ports'][port][0],
+                self.graph.add_node(data, **{'kind': 'data', 'shape': self.graph.nodes[node]['ports'][port][0],
                                              'value': None})
                 self.graph.add_edges_from([(node, data, {'out': port})])
                 data_nodes.update({port: data})
@@ -149,13 +149,13 @@ class IREngine(object):
         hashes = defaultdict(dict)
         for node in nodes:
             for w in ['weights', 'biases', 'custom']:
-                if w in graph.node[node]:
+                if w in graph.nodes[node]:
                     data = graph.unique_id(prefix='data_')
-                    offset, size, in_port, precision = graph.node[node][w]
+                    offset, size, in_port, precision = graph.nodes[node][w]
                     if Node(graph, node).soft_get('type') == 'BinaryConvolution':
                         precision = np.uint8
                     value = np.frombuffer(buffer=bin_buff, dtype=precision, count=size, offset=offset)
-                    hashes[graph.node[node]['name']][w] = hashlib.sha512(value.tobytes()).hexdigest()
+                    hashes[graph.nodes[node]['name']][w] = hashlib.sha512(value.tobytes()).hexdigest()
                     graph.add_node(data, **{'kind': 'data', 'value': value, 'shape': value.shape})
                     graph.add_edges_from([(data, node, {'in': in_port})])
         self.graph.graph['hashes'].update(hashes)
@@ -167,11 +167,11 @@ class IREngine(object):
 
         for node in graph.nodes():
             for w in ['weights', 'biases', 'custom']:
-                if w in graph.node[node]:
+                if w in graph.nodes[node]:
                     assert Node(graph, node).has_valid('name')
                     node_name = Node(graph, node).name
                     assert node_name in bin_hash_map and w in bin_hash_map[node_name]
-                    graph.node[node]['hashes'] = bin_hash_map[node_name][w]
+                    graph.nodes[node]['hashes'] = bin_hash_map[node_name][w]
 
     def __load_ir(self):
         self.__load_xml()

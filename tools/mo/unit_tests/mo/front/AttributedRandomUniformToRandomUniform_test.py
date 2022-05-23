@@ -44,7 +44,7 @@ class AttributedRandomUniformToRandomUniformTest(unittest.TestCase):
         (flag, resp) = compare_graphs(graph, graph_ref, 'result', check_op_attrs=True)
         self.assertTrue(flag, resp)
         self.assertTrue(
-            graph.node[graph.get_nodes_with_attributes(op='RandomUniform')[0]]['name'] == 'attr_random_uniform')
+            graph.nodes[graph.get_nodes_with_attributes(op='RandomUniform')[0]]['name'] == 'attr_random_uniform')
 
     def test_min_max_shape(self):
         graph = build_graph(nodes,
@@ -62,4 +62,4 @@ class AttributedRandomUniformToRandomUniformTest(unittest.TestCase):
         (flag, resp) = compare_graphs(graph, graph_ref, 'result', check_op_attrs=True)
         self.assertTrue(flag, resp)
         self.assertTrue(
-            graph.node[graph.get_nodes_with_attributes(op='RandomUniform')[0]]['name'] == 'attr_random_uniform')
+            graph.nodes[graph.get_nodes_with_attributes(op='RandomUniform')[0]]['name'] == 'attr_random_uniform')

@@ -16,7 +16,7 @@ def debug_ir_emitter(graph, exclude_attrs: list = []):
     nodes = nx.topological_sort(graph)
     np.set_printoptions(threshold=10)
     for node in nodes:
-        attrs = graph.node[node]
+        attrs = graph.nodes[node]
         print('Node:', node)
         if attrs['kind'] == 'op':
             for idx, value in Node(graph, node).in_nodes().items():

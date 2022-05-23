@@ -31,8 +31,8 @@ def eltwise_infer(node: Node, op=None, **kwargs):
 
     raw_inputs = [(inp, attr) for inp, attr in node.get_sorted_inputs()
                   if 'control_flow_edge' not in attr or not attr['control_flow_edge']]
-    shapes = [node.graph.node[inp]['shape'] for inp, attr in raw_inputs]
-    values = [node.graph.node[inp]['value'] for inp, attr in raw_inputs]
+    shapes = [node.graph.nodes[inp]['shape'] for inp, attr in raw_inputs]
+    values = [node.graph.nodes[inp]['value'] for inp, attr in raw_inputs]
     node_name = node.soft_get('name', node.id)
 
     if any([s is None for s in shapes]):

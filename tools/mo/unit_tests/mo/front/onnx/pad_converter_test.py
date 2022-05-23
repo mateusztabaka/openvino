@@ -50,4 +50,4 @@ class AttributedClampNormalizerTest(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'result', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(op='Pad')[0]]['name'] == 'my_pad')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(op='Pad')[0]]['name'] == 'my_pad')

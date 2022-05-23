@@ -35,7 +35,7 @@ class TestCropInfer(unittest.TestCase):
 
         crop_infer(crop_node)
         exp_shape = np.array([1, 2, 256, 256])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -60,7 +60,7 @@ class TestCropInfer(unittest.TestCase):
 
         crop_infer(crop_node)
         exp_shape = np.array([1, 2, 500, 256])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -84,7 +84,7 @@ class TestCropInfer(unittest.TestCase):
         crop_node = Node(graph, 'crop_1')
 
         crop_infer(crop_node)
-        self.assertIsNone(graph.node['node_3']['shape'])
+        self.assertIsNone(graph.nodes['node_3']['shape'])
 
     def test_crop_infer_one_shape(self):
         graph = build_graph(nodes_attributes,
@@ -100,7 +100,7 @@ class TestCropInfer(unittest.TestCase):
         crop_node = Node(graph, 'crop_1')
 
         crop_infer(crop_node)
-        self.assertIsNone(graph.node['node_3']['shape'])
+        self.assertIsNone(graph.nodes['node_3']['shape'])
 
     def test_crop_infer_out_offset(self):
         graph = build_graph(nodes_attributes,
@@ -118,4 +118,4 @@ class TestCropInfer(unittest.TestCase):
         crop_node = Node(graph, 'crop_1')
 
         crop_infer(crop_node)
-        self.assertIsNone(graph.node['node_3']['shape'])
+        self.assertIsNone(graph.nodes['node_3']['shape'])

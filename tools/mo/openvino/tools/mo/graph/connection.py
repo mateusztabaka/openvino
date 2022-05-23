@@ -154,7 +154,7 @@ class Connection:
                 if attributes_save_mode != "source":
                     # Remove debug info
                     if 'fw_tensor_debug_info' in source_out_data.attrs():
-                        del self.graph.node[source_out_data.id]['fw_tensor_debug_info']
+                        del self.graph.nodes[source_out_data.id]['fw_tensor_debug_info']
                 # Copy attrs to new data node
                 for attr in attrs:
                     if attr != 'fw_tensor_debug_info':

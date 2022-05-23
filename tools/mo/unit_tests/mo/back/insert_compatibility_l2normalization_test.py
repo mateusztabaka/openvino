@@ -30,10 +30,10 @@ class CompatibilityL2NormalizationPatternTest(unittest.TestCase):
                              })
         CompatibilityL2NormalizationPattern().find_and_replace_pattern(graph)
         self.assertEqual(len(graph.nodes()), 5)
-        self.assertEqual(graph.node['l2norm_node_weights']['name'], 'l2norm_node_weights')
-        self.assertEqual(len(graph.node['l2norm_node_weights']['value']), 10)
+        self.assertEqual(graph.nodes['l2norm_node_weights']['name'], 'l2norm_node_weights')
+        self.assertEqual(len(graph.nodes['l2norm_node_weights']['value']), 10)
 
         expect_value = np.full([10], 1.0, np.float32)
 
         for i, val in enumerate(expect_value):
-            self.assertEqual(graph.node['l2norm_node_weights']['value'][i], val)
+            self.assertEqual(graph.nodes['l2norm_node_weights']['value'][i], val)

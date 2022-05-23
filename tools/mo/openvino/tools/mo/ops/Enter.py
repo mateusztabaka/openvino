@@ -24,5 +24,5 @@ class Enter(Op):
         output_value = node.in_port(0).data.get_value()
 
         for _, out_node in node.graph.out_edges(node.id):
-            node.graph.node[out_node]['shape'] = shape_array(output_shape)
-            node.graph.node[out_node]['value'] = None if output_value is None else output_value.copy()
+            node.graph.nodes[out_node]['shape'] = shape_array(output_shape)
+            node.graph.nodes[out_node]['value'] = None if output_value is None else output_value.copy()

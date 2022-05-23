@@ -39,7 +39,7 @@ class AttributedRollToRollTest(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'result', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(op='Roll')[0]]['name'] == 'attr_roll')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(op='Roll')[0]]['name'] == 'attr_roll')
 
     def test_axes(self):
         graph = build_graph(nodes_attributes,
@@ -57,4 +57,4 @@ class AttributedRollToRollTest(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'result', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(op='Roll')[0]]['name'] == 'attr_roll')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(op='Roll')[0]]['name'] == 'attr_roll')

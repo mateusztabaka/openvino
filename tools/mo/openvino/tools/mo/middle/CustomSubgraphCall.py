@@ -160,7 +160,7 @@ class CustomSubgraphCall(MiddleReplacementPattern):
         reshape_node_name = graph.unique_id("Reshape_")
         graph.add_node(reshape_node_name, kind='op', type='Reshape', name=reshape_node_name, op='Reshape',
                        data_type=data_node['data_type'])
-        update_ie_fields(graph.node[reshape_node_name])
+        update_ie_fields(graph.nodes[reshape_node_name])
 
         # reshaped data node
         reshaped_value = None
@@ -209,7 +209,7 @@ class CustomSubgraphCall(MiddleReplacementPattern):
         reshape_node_name = graph.unique_id("Reshape_")
         graph.add_node(reshape_node_name, kind='op', type='Reshape', name=reshape_node_name, op='Reshape',
                        data_type=data_node['data_type'])
-        update_ie_fields(graph.node[reshape_node_name])
+        update_ie_fields(graph.nodes[reshape_node_name])
 
         # reshape shape data node
         reshape_shape_data_node_name = graph.unique_id("Reshape_shape_")

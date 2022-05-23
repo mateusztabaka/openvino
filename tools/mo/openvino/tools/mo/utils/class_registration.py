@@ -130,8 +130,8 @@ class DependencyGraph(Graph):
             visited_nodes.add(dst_node_name)
             if src_node_name not in nodes_to_dump or dst_node_name not in nodes_to_dump:
                 continue
-            src_node = self.node[src_node_name]
-            dst_node = self.node[dst_node_name]
+            src_node = self.nodes[src_node_name]
+            dst_node = self.nodes[dst_node_name]
             src_node_string = str(src_node_name) + '\\n'.join(
                 [str(key) + '=' + str(src_node.get(key, 'None')) for key in node_attrs if key in src_node])
             dst_node_string = str(dst_node_name) + '\\n'.join(
@@ -179,7 +179,7 @@ class DependencyGraph(Graph):
 
     def repeated_cls_names_check(self):
         name_to_class_map = {}
-        for transform_class in self.node:
+        for transform_class in self.nodes:
             transform_name = transform_class.__name__
             assert transform_name not in name_to_class_map, \
                 'Transform name `{}` is not unique: at least {} and {} exist' \

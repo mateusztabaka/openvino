@@ -23,8 +23,8 @@ class RestorePorts(FrontReplacementSubgraph):
                 attrs['_out_ports'] = set()
 
         for u, v, k, d in graph.edges(data=True, keys=True):
-            from_node_attrs = graph.node[u]
-            to_node_attrs = graph.node[v]
+            from_node_attrs = graph.nodes[u]
+            to_node_attrs = graph.nodes[v]
             is_control_flow = 'control_flow_edge' in d and d['control_flow_edge'] is True
 
             in_port_id = d['in'] if not is_control_flow else 'control_flow_' + str(d['in'])

@@ -70,7 +70,7 @@ class TestMerge(unittest.TestCase):
         self.assertTrue(flag, resp)
 
         # Imitate that inputs nodes now is inferred
-        graph.node['first']['is_partial_inferred'] = True
+        graph.nodes['first']['is_partial_inferred'] = True
 
         # Run infer second time
         tested_class = Merge(graph=graph, attrs={})

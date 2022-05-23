@@ -44,7 +44,7 @@ def extract_custom_blobs(node):
                   "It will appear as input {} and internal attribute {}.".format(
                       port,
                       internal_name))
-        embed_input(node.graph.node[node.id], port, internal_name, blob.data, blob_name(i))
+        embed_input(node.graph.nodes[node.id], port, internal_name, blob.data, blob_name(i))
 
 
 def native_caffe_node_extractor(node):

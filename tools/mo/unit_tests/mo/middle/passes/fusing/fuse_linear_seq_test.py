@@ -150,8 +150,8 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                       "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                       "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -226,8 +226,8 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -302,8 +302,8 @@ class LinSeqFusingTests(unittest.TestCase):
 
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'placeholder_1')
         self.assertTrue(flag, resp)
@@ -379,8 +379,8 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'op_output')
         self.assertTrue(flag, resp)
@@ -445,8 +445,8 @@ class LinSeqFusingTests(unittest.TestCase):
         fuse_mul_add_sequence(graph)
         graph.clean_up()
 
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -516,8 +516,8 @@ class LinSeqFusingTests(unittest.TestCase):
         fuse_mul_add_sequence(graph)
         graph.clean_up()
 
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -586,8 +586,8 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -634,8 +634,8 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -695,8 +695,8 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -756,8 +756,8 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -831,8 +831,8 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -904,8 +904,8 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node), len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes), len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)
@@ -985,9 +985,9 @@ class LinSeqFusingTests(unittest.TestCase):
         graph.graph['layout'] = 'NHWC'
         fuse_mul_add_sequence(graph)
         graph.clean_up()
-        self.assertTrue(len(graph.node) == len(graph_ref.node),
-                        "Graphs has different number of nodes: {} and {}".format(len(graph.node),
-                                                                                 len(graph_ref.node)))
+        self.assertTrue(len(graph.nodes) == len(graph_ref.nodes),
+                        "Graphs has different number of nodes: {} and {}".format(len(graph.nodes),
+                                                                                 len(graph_ref.nodes)))
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'concat_1_data')
         self.assertTrue(flag, resp)

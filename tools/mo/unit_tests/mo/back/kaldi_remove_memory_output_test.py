@@ -33,7 +33,7 @@ class KaldiRemoveMemoryOutputTest(unittest.TestCase):
                                 ('output_node', 'op_output')
                             ])
         KaldiRemoveMemoryOutputBackReplacementPattern().find_and_replace_pattern(graph)
-        self.assertNotIn('output_node', graph.node)
+        self.assertNotIn('output_node', graph.nodes)
 
     def test_do_not_remove_out_data_for_memory(self):
         graph = build_graph(self.nodes,
@@ -42,4 +42,4 @@ class KaldiRemoveMemoryOutputTest(unittest.TestCase):
                                 ('memory_node', 'output_node'),
                             ])
         KaldiRemoveMemoryOutputBackReplacementPattern().find_and_replace_pattern(graph)
-        self.assertIn('output_node', graph.node)
+        self.assertIn('output_node', graph.nodes)

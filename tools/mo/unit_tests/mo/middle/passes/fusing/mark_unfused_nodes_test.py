@@ -89,9 +89,9 @@ class MarkFusedNodes(unittest.TestCase):
 
         mark_unfused_nodes(graph, '.*mul.*')
 
-        self.assertFalse(graph.node['mul_1']['can_be_fused'], "can_be_fused should be False")
-        self.assertFalse(graph.node['mul_2']['can_be_fused'], "can_be_fused should be False")
-        self.assertTrue(graph.node['add_1']['can_be_fused'], "can_be_fused should be True")
+        self.assertFalse(graph.nodes['mul_1']['can_be_fused'], "can_be_fused should be False")
+        self.assertFalse(graph.nodes['mul_2']['can_be_fused'], "can_be_fused should be False")
+        self.assertTrue(graph.nodes['add_1']['can_be_fused'], "can_be_fused should be True")
 
     def test_mark_unfused_nodes_2(self):
         # Placeholder->ScaleShift->Mul->Add
@@ -123,11 +123,11 @@ class MarkFusedNodes(unittest.TestCase):
 
         mark_unfused_nodes(graph, '.*')
 
-        self.assertFalse(graph.node['mul_1']['can_be_fused'], "can_be_fused should be False")
-        self.assertFalse(graph.node['mul_2']['can_be_fused'], "can_be_fused should be False")
-        self.assertFalse(graph.node['add_1']['can_be_fused'], "can_be_fused should be False")
-        self.assertFalse(graph.node['placeholder_1']['can_be_fused'], "can_be_fused should be False")
-        self.assertFalse(graph.node['concat_1']['can_be_fused'], "can_be_fused should be False")
+        self.assertFalse(graph.nodes['mul_1']['can_be_fused'], "can_be_fused should be False")
+        self.assertFalse(graph.nodes['mul_2']['can_be_fused'], "can_be_fused should be False")
+        self.assertFalse(graph.nodes['add_1']['can_be_fused'], "can_be_fused should be False")
+        self.assertFalse(graph.nodes['placeholder_1']['can_be_fused'], "can_be_fused should be False")
+        self.assertFalse(graph.nodes['concat_1']['can_be_fused'], "can_be_fused should be False")
 
     def test_mark_unfused_nodes_3(self):
         # Placeholder->ScaleShift->Mul->Add
@@ -159,9 +159,9 @@ class MarkFusedNodes(unittest.TestCase):
 
         mark_unfused_nodes(graph, 'mul_1,add_1')
 
-        self.assertFalse(graph.node['mul_1']['can_be_fused'], "can_be_fused should be False")
-        self.assertFalse(graph.node['add_1']['can_be_fused'], "can_be_fused should be False")
-        self.assertTrue(graph.node['mul_2']['can_be_fused'], "can_be_fused should be True")
+        self.assertFalse(graph.nodes['mul_1']['can_be_fused'], "can_be_fused should be False")
+        self.assertFalse(graph.nodes['add_1']['can_be_fused'], "can_be_fused should be False")
+        self.assertTrue(graph.nodes['mul_2']['can_be_fused'], "can_be_fused should be True")
 
     def test_mark_unfused_nodes_4(self):
         # Placeholder->ScaleShift->Mul->Add
@@ -194,9 +194,9 @@ class MarkFusedNodes(unittest.TestCase):
 
         mark_unfused_nodes(graph, '')
 
-        self.assertTrue(graph.node['mul_1']['can_be_fused'], "can_be_fused should be True")
-        self.assertTrue(graph.node['add_1']['can_be_fused'], "can_be_fused should be True")
-        self.assertTrue(graph.node['mul_2']['can_be_fused'], "can_be_fused should be True")
+        self.assertTrue(graph.nodes['mul_1']['can_be_fused'], "can_be_fused should be True")
+        self.assertTrue(graph.nodes['add_1']['can_be_fused'], "can_be_fused should be True")
+        self.assertTrue(graph.nodes['mul_2']['can_be_fused'], "can_be_fused should be True")
 
     def test_mark_unfused_nodes_5(self):
         # Placeholder->ScaleShift->Mul->Add
@@ -228,9 +228,9 @@ class MarkFusedNodes(unittest.TestCase):
 
         mark_unfused_nodes(graph, '')
 
-        self.assertTrue(graph.node['mul_1']['can_be_fused'], "can_be_fused should be True")
-        self.assertTrue(graph.node['add_1']['can_be_fused'], "can_be_fused should be True")
-        self.assertTrue(graph.node['mul_2']['can_be_fused'], "can_be_fused should be True")
+        self.assertTrue(graph.nodes['mul_1']['can_be_fused'], "can_be_fused should be True")
+        self.assertTrue(graph.nodes['add_1']['can_be_fused'], "can_be_fused should be True")
+        self.assertTrue(graph.nodes['mul_2']['can_be_fused'], "can_be_fused should be True")
 
         def test_mark_unfused_nodes_5(self):
             # Placeholder->ScaleShift->Mul->Add
@@ -262,9 +262,9 @@ class MarkFusedNodes(unittest.TestCase):
 
             mark_unfused_nodes(graph, '')
 
-            self.assertFalse(graph.node['mul_1']['can_be_fused'], "can_be_fused should be False")
-            self.assertFalse(graph.node['add_1']['can_be_fused'], "can_be_fused should be False")
-            self.assertFalse(graph.node['mul_2']['can_be_fused'], "can_be_fused should be False")
+            self.assertFalse(graph.nodes['mul_1']['can_be_fused'], "can_be_fused should be False")
+            self.assertFalse(graph.nodes['add_1']['can_be_fused'], "can_be_fused should be False")
+            self.assertFalse(graph.nodes['mul_2']['can_be_fused'], "can_be_fused should be False")
 
     def test_mark_unfused_nodes_6(self):
         # Placeholder->ScaleShift->Mul->Add
@@ -296,6 +296,6 @@ class MarkFusedNodes(unittest.TestCase):
 
         mark_unfused_nodes(graph, '')
 
-        self.assertTrue(graph.node['mul_1']['can_be_fused'], "can_be_fused should be True")
-        self.assertTrue(graph.node['add_1']['can_be_fused'], "can_be_fused should be True")
-        self.assertTrue(graph.node['mul_2']['can_be_fused'], "can_be_fused should be True")
+        self.assertTrue(graph.nodes['mul_1']['can_be_fused'], "can_be_fused should be True")
+        self.assertTrue(graph.nodes['add_1']['can_be_fused'], "can_be_fused should be True")
+        self.assertTrue(graph.nodes['mul_2']['can_be_fused'], "can_be_fused should be True")

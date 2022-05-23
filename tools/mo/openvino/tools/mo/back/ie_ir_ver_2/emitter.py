@@ -67,21 +67,21 @@ def serialize_constants_recursively(graph: Graph, bin_file, data_type, bin_hashe
             blob_hash = hashlib.sha512(np.ascontiguousarray(blob).view(np.uint8)).hexdigest()
 
             if blob_hash in bin_hashes and np.array_equal(blob, bin_hashes[blob_hash]['blob']):
-                graph.node[node.node]['offset'] = bin_hashes[blob_hash]['offset']
-                graph.node[node.node]['size'] = bin_hashes[blob_hash]['size']
-                graph.node[node.node]['blob_precision'] = np_data_type_to_precision(blob.dtype)
+                graph.nodes[node.node]['offset'] = bin_hashes[blob_hash]['offset']
+                graph.nodes[node.node]['size'] = bin_hashes[blob_hash]['size']
+                graph.nodes[node.node]['blob_precision'] = np_data_type_to_precision(blob.dtype)
                 update_offset_size_in_const_node(node)
             else:
                 start = bin_file.tell()
                 blob.tofile(bin_file)
                 end = bin_file.tell()
 
-                graph.node[node.node]['offset'] = start
-                graph.node[node.node]['size'] = end - start
-                graph.node[node.node]['blob_precision'] = np_data_type_to_precision(blob.dtype)
+                graph.nodes[node.node]['offset'] = start
+                graph.nodes[node.node]['size'] = end - start
+                graph.nodes[node.node]['blob_precision'] = np_data_type_to_precision(blob.dtype)
 
-                bin_hashes[blob_hash] = {'offset': graph.node[node.node]['offset'],
-                                         'size': graph.node[node.node]['size'], 'blob': blob}
+                bin_hashes[blob_hash] = {'offset': graph.nodes[node.node]['offset'],
+                                         'size': graph.nodes[node.node]['size'], 'blob': blob}
                 update_offset_size_in_const_node(node)
 
                 assert (blob.dtype.itemsize * np.prod(node.shape) == end - start) or \
@@ -138,9 +138,9 @@ def xml_ports(node: Node, element: Element, edges: Element):
                 inputs = SubElement(element, 'input')
             port = SubElement(inputs, 'port')
             port.set('id', str(d['in']))
-            assert node.graph.node[u]['shape'] is not None, 'Input shape is not calculated properly for node {}'.format(
+            assert node.graph.nodes[u]['shape'] is not None, 'Input shape is not calculated properly for node {}'.format(
                 node.id)
-            xml_shape(node.graph.node[u]['shape'], port)
+            xml_shape(node.graph.nodes[u]['shape'], port)
 
             # support saving rt_info passed from IR Reader
             port_id = d['in']
@@ -157,7 +157,7 @@ def xml_ports(node: Node, element: Element, edges: Element):
                             attribute.set(key, value)
 
             # u is a data node that has a single producer, let's find it
-            assert (node.graph.node[u]['kind'] == 'data')
+            assert (node.graph.nodes[u]['kind'] == 'data')
             in_nodes = list(node.graph.in_edges(u, data=True))
             assert (len(in_nodes) <= 1)
             if len(in_nodes) == 1:
@@ -185,12 +185,12 @@ def xml_ports(node: Node, element: Element, edges: Element):
                                           ''.format(port_id, node.soft_get('name'))
 
             port.set('precision', node.soft_get('force_type', np_data_type_to_precision(data_type)))
-            assert node.graph.node[v]['shape'] is not None, 'Output shape is not calculated properly for node {}' \
+            assert node.graph.nodes[v]['shape'] is not None, 'Output shape is not calculated properly for node {}' \
                                                             ''.format(node.id)
             tensor_names = node.out_port(port_id).get_tensor_names(port_renumber=True)
             if tensor_names:
                 port.set('names', ','.join(tensor_names))
-            xml_shape(node.graph.node[v]['shape'], port)
+            xml_shape(node.graph.nodes[v]['shape'], port)
 
             # support saving rt_info passed from IR Reader
             if node.has('ports') and port_id in node.ports:
@@ -213,9 +213,9 @@ def xml_consts(graph: Graph, node: Node, element: Element):
                 blobs = SubElement(element, 'blobs')
             const = SubElement(blobs, d['bin'])
             try:
-                const.set('offset', str(graph.node[u]['offset']))
-                const.set('size', str(graph.node[u]['size']))
-                const.set('precision', graph.node[u]['blob_precision'])
+                const.set('offset', str(graph.nodes[u]['offset']))
+                const.set('size', str(graph.nodes[u]['size']))
+                const.set('precision', graph.nodes[u]['blob_precision'])
             except Exception as e:
                 raise Error('Unable to access binary attributes ("offset" and/or "size") for blobs for node {}. '
                             'Details: {}'.format(node.soft_get('name'), e))
@@ -254,7 +254,7 @@ def serialize_element(
                     attr
                 ) from e
         elif isinstance(attr, dict):
-            node_attrs = node.graph.node[node.id] if isinstance(node, Node) else node
+            node_attrs = node.graph.nodes[node.id] if isinstance(node, Node) else node
             for key in attr.keys():
                 if key in node_attrs:
                     for k, v in node_attrs[key].items():

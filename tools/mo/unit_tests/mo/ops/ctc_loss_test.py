@@ -68,7 +68,7 @@ class TestCTCLoss(unittest.TestCase):
         ref_output_shape = int64_array([4])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'shapes do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))

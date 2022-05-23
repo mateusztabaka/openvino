@@ -64,7 +64,7 @@ class TestEltwiseInfer(unittest.TestCase):
         eltwise_node = Node(graph, 'eltw_1')
 
         eltwise_infer(eltwise_node, shape_infer)
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         res_value = eltwise_node.out_node().value
         if exp_value is not None:
             self.assertTrue(strict_compare_tensors(res_value, shape_array(exp_value)))
@@ -86,7 +86,7 @@ class TestEltwiseInfer(unittest.TestCase):
 
         eltwise_infer(eltwise_node, lambda a, b: a * b)
         exp_shape = np.array([1, 3, 256, 256])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         res_value = eltwise_node.out_node().value
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])

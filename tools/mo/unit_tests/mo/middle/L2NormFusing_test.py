@@ -102,7 +102,7 @@ class L2NormToNormTest(unittest.TestCase):
         ], edges_after_replacement, nodes_with_edges_only=True)
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'result', check_op_attrs=True)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(type='NormalizeL2')[0]]['name'] == 'l2_norm_name')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(type='NormalizeL2')[0]]['name'] == 'l2_norm_name')
         self.assertTrue(flag, resp)
 
     @generate(*[(int64_array([2]), int64_array([0]), 'NCHW'),

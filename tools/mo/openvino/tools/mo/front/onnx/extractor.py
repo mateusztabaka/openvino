@@ -22,10 +22,10 @@ def common_onnx_fields(node: Node):
 
 def onnx_op_extractor(node: Node, lowered_keys_map: dict):
     if not node.has_valid('pb'):
-        return True, node.graph.node[node.id]
+        return True, node.graph.nodes[node.id]
 
     result = common_onnx_fields(node)
-    node.graph.node[node.id].update(result)
+    node.graph.nodes[node.id].update(result)
     supported = False
     op = result['op'].lower()
     if op in lowered_keys_map:

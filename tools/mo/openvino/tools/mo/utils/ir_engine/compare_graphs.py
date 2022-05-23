@@ -106,12 +106,12 @@ def compare_graphs(graph: Graph, graph_ref: Graph, last_node: str, last_node_ref
             if check_op_attrs:
                 cur_node_type = node.type if node.has_valid("type") else None
                 ref_node_type = node_ref.type if node_ref.has_valid("type") else None
-                for attr in graph_ref.node[node_ref.id]:
-                    if graph_ref.node[node_ref.id][attr] is None or attr in \
+                for attr in graph_ref.nodes[node_ref.id]:
+                    if graph_ref.nodes[node_ref.id][attr] is None or attr in \
                             ['name', 'id', '_in_ports', '_out_ports', 'infer', 'IE', 'biases', 'weights', 'custom',
                              'offset', 'ir_data_attrs', 'rt_info']:
                         continue
-                    if attr not in graph.node[node.id]:
+                    if attr not in graph.nodes[node.id]:
                         stderr.append('Current node "{}" with type {} has missing attribute {}'
                                       ''.format(node.id, cur_node_type, attr))
                         continue
@@ -122,7 +122,7 @@ def compare_graphs(graph: Graph, graph_ref: Graph, last_node: str, last_node_ref
                                           'different values \n{} \nand \n{}'.format(
                                 node.id, cur_node_type, node_ref.id, ref_node_type, node.value, node_ref.value))
                         continue
-                    compare_node(node_ref, node, graph_ref.node[node_ref.id][attr], graph.node[node.id][attr], attr,
+                    compare_node(node_ref, node, graph_ref.nodes[node_ref.id][attr], graph.nodes[node.id][attr], attr,
                                  stderr)
         else:
             if node_ref.has_valid('shape') and not node.has_valid('shape'):

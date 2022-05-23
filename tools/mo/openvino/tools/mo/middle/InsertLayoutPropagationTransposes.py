@@ -135,8 +135,8 @@ def is_input_data_in_correct_layout(node: Node, port_ind: int):
 def mark_input_as_in_correct_layout(node: Node, port_ind: int):
     assert node.soft_get('kind') == 'op', 'The function work with operation nodes only'
     graph = node.graph
-    graph.node[node.id].setdefault('correct_in_data_layout', set())
-    graph.node[node.id]['correct_in_data_layout'].add(port_ind)
+    graph.nodes[node.id].setdefault('correct_in_data_layout', set())
+    graph.nodes[node.id]['correct_in_data_layout'].add(port_ind)
 
 
 def is_output_data_in_correct_layout(node: Node, port_ind: int):
@@ -147,8 +147,8 @@ def is_output_data_in_correct_layout(node: Node, port_ind: int):
 def mark_output_as_in_correct_layout(node: Node, port_ind: int):
     assert node.soft_get('kind') == 'op', 'The function work with operation nodes only'
     graph = node.graph
-    graph.node[node.id].setdefault('correct_out_data_layout', set())
-    graph.node[node.id]['correct_out_data_layout'].add(port_ind)
+    graph.nodes[node.id].setdefault('correct_out_data_layout', set())
+    graph.nodes[node.id]['correct_out_data_layout'].add(port_ind)
 
 
 def mark_as_correct_data_layout(node: Node):

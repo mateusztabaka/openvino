@@ -30,5 +30,5 @@ class TensorArraySize(Op):
         output_value = mo_array(ta_node['size'])
 
         for _, out_node in node.graph.out_edges(node.id):
-            node.graph.node[out_node]['shape'] = shape_array(output_value.shape)
-            node.graph.node[out_node]['value'] = output_value.copy()
+            node.graph.nodes[out_node]['shape'] = shape_array(output_value.shape)
+            node.graph.nodes[out_node]['value'] = output_value.copy()

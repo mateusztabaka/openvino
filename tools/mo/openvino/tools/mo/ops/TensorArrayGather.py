@@ -38,5 +38,5 @@ class TensorArrayGather(Op):
         output_shape = [size] + [data_shape[i] for i in range(len(data_shape))]
 
         for _, out_node in node.graph.out_edges(node.id):
-            node.graph.node[out_node]['shape'] = shape_array(output_shape)
-            node.graph.node[out_node]['value'] = None
+            node.graph.nodes[out_node]['shape'] = shape_array(output_shape)
+            node.graph.nodes[out_node]['value'] = None

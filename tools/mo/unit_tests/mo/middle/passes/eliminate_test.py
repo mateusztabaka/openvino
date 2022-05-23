@@ -83,7 +83,7 @@ class TestEliminatePass(unittest.TestCase):
 
         self.assertListEqual(sorted(['node_1', 'node_2', 'op_output', 'placeholder_1']),
                              sorted(graph.get_nodes_with_attributes(is_output_reachable=True)))
-        self.assertFalse(graph.node['node_3']['is_output_reachable'])
+        self.assertFalse(graph.nodes['node_3']['is_output_reachable'])
 
     def test_mark_ops_producing_constant_values(self):
         """
@@ -128,7 +128,7 @@ class TestEliminatePass(unittest.TestCase):
                              'data_node_6': {'value': np.array(1)}},
                             nodes_with_edges_only=True)
         mark_const_producer_nodes(graph)
-        self.assertTrue((graph.node['node_6']['is_const_producer']))
+        self.assertTrue((graph.nodes['node_6']['is_const_producer']))
         self.assertListEqual(sorted(['node_1', 'node_2', 'node_3', 'node_5', 'placeholder_1']),
                              sorted(graph.get_nodes_with_attributes(is_const_producer=False, kind='op')))
 

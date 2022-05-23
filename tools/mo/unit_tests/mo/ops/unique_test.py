@@ -60,8 +60,8 @@ class TestUnique(unittest.TestCase):
         ref_output_indices_shape = int64_array([20])
 
         # get resulted shapes
-        res_output_uniques_shape = graph.node['output_uniques']['shape']
-        res_output_indices_shape = graph.node['output_indices']['shape']
+        res_output_uniques_shape = graph.nodes['output_uniques']['shape']
+        res_output_indices_shape = graph.nodes['output_indices']['shape']
 
         self.assertTrue(np.array_equal(ref_output_uniques_shape, res_output_uniques_shape),
                         'shapes do not match expected: {} and given: {}'.format(ref_output_uniques_shape, res_output_uniques_shape))
@@ -82,9 +82,9 @@ class TestUnique(unittest.TestCase):
         ref_output_counts_shape = int64_array([20])
 
         # get resulted shapes
-        res_output_uniques_shape = graph.node['output_uniques']['shape']
-        res_output_indices_shape = graph.node['output_indices']['shape']
-        res_output_counts_shape = graph.node['output_counts']['shape']
+        res_output_uniques_shape = graph.nodes['output_uniques']['shape']
+        res_output_indices_shape = graph.nodes['output_indices']['shape']
+        res_output_counts_shape = graph.nodes['output_counts']['shape']
 
         self.assertTrue(np.array_equal(ref_output_uniques_shape, res_output_uniques_shape),
                         'shapes do not match expected: {} and given: {}'.format(ref_output_uniques_shape, res_output_uniques_shape))
@@ -108,7 +108,7 @@ class TestUnique(unittest.TestCase):
         ref_output_uniques_shape = int64_array([20])
 
         # get resulted shapes
-        res_output_uniques_shape = graph.node['output_uniques']['shape']
+        res_output_uniques_shape = graph.nodes['output_uniques']['shape']
 
         self.assertTrue(np.array_equal(ref_output_uniques_shape, res_output_uniques_shape),
                         'shapes do not match expected: {} and given: {}'.format(ref_output_uniques_shape, res_output_uniques_shape))
@@ -182,12 +182,12 @@ class TestUnique(unittest.TestCase):
         ref_output_counts_value = np.array([2.0, 3.0, 1.0, 2.0, 2.0], dtype=np.float)
 
         # get resulted shapes
-        res_output_uniques_shape = graph.node['output_uniques']['shape']
-        res_output_uniques_value = graph.node['output_uniques']['value']
-        res_output_indices_shape = graph.node['output_indices']['shape']
-        res_output_indices_value = graph.node['output_indices']['value']
-        res_output_counts_shape = graph.node['output_counts']['shape']
-        res_output_counts_value = graph.node['output_counts']['value']
+        res_output_uniques_shape = graph.nodes['output_uniques']['shape']
+        res_output_uniques_value = graph.nodes['output_uniques']['value']
+        res_output_indices_shape = graph.nodes['output_indices']['shape']
+        res_output_indices_value = graph.nodes['output_indices']['value']
+        res_output_counts_shape = graph.nodes['output_counts']['shape']
+        res_output_counts_value = graph.nodes['output_counts']['value']
 
         # verify the results
         self.assertTrue(np.array_equal(ref_output_uniques_shape, res_output_uniques_shape),
@@ -237,12 +237,12 @@ class TestUnique(unittest.TestCase):
         ref_output_counts_value = np.array([2.0, 3.0, 1.0, 2.0, 2.0], dtype=np.float)
 
         # get resulted shapes
-        res_output_uniques_shape = graph.node['output_uniques']['shape']
-        res_output_uniques_value = graph.node['output_uniques']['value']
-        res_output_indices_shape = graph.node['output_indices']['shape']
-        res_output_indices_value = graph.node['output_indices']['value']
-        res_output_counts_shape = graph.node['output_counts']['shape']
-        res_output_counts_value = graph.node['output_counts']['value']
+        res_output_uniques_shape = graph.nodes['output_uniques']['shape']
+        res_output_uniques_value = graph.nodes['output_uniques']['value']
+        res_output_indices_shape = graph.nodes['output_indices']['shape']
+        res_output_indices_value = graph.nodes['output_indices']['value']
+        res_output_counts_shape = graph.nodes['output_counts']['shape']
+        res_output_counts_value = graph.nodes['output_counts']['value']
 
         # verify the results
         self.assertTrue(np.array_equal(ref_output_uniques_shape, res_output_uniques_shape),

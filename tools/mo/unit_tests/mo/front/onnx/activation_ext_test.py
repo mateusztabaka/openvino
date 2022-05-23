@@ -43,7 +43,7 @@ class ActivationOpsONNXExtractorTest(unittest.TestCase):
     def _extract(op_name):
         node = __class__._create_node(op_name)
         getattr(extractors, op_name + 'Extractor').extract(node)
-        return node.graph.node[node.id]
+        return node.graph.nodes[node.id]
 
     @generate(*['Abs', 'Acos', 'Asin', 'Atan', 'Acosh', 'Asinh', 'Atanh', 'Cos', 'Cosh', 'Erf', 'Exp', 'Floor', 'Log', 'Not', 'Sigmoid', 'Sin',
                 'Sinh', 'Tan', 'Tanh'])

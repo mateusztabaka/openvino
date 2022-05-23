@@ -70,10 +70,10 @@ def common_tf_fields(node: Node):
 def tf_op_extractor(node: Node, lowered_keys_map: dict):
     # all required attributes for the 'TFCustomSubgraphCall' are set during their initialization
     if (node.has('op') and node.op == 'TFCustomSubgraphCall') or (not node.has_valid('pb')):
-        return True, node.graph.node[node.id]
+        return True, node.graph.nodes[node.id]
 
     result = common_tf_fields(node)
-    node.graph.node[node.id].update(result)
+    node.graph.nodes[node.id].update(result)
     supported = False
     op = result['op'].lower()
     if op in lowered_keys_map:

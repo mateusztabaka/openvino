@@ -106,7 +106,7 @@ class KaldiRemoveLastSoftMaxTest(unittest.TestCase):
             ('output_node', 'op_output')
         ], nodes_with_edges_only=True)
         RemoveLastSoftMaxPattern().find_and_replace_pattern(graph)
-        self.assertNotIn('softmax_node', graph.node)
+        self.assertNotIn('softmax_node', graph.nodes)
 
     def test_remove_last_LogSoftMax(self):
         graph = build_graph(nodes_attrs=self.nodes_for_logsoftmax, edges=self.edges_for_logsoftmax)
@@ -130,4 +130,4 @@ class KaldiRemoveLastSoftMaxTest(unittest.TestCase):
             ('softmax_node', 'output_node')
         ])
         RemoveLastSoftMaxPattern().find_and_replace_pattern(graph)
-        self.assertIn('softmax_node', graph.node)
+        self.assertIn('softmax_node', graph.nodes)

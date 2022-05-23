@@ -44,7 +44,7 @@ def tf_native_tf_node_infer(node: Node):
                                                                                                            node.id, 1)
     tmp_graph = node.graph.create_sub_graph_copy(nodes_to_extract)
 
-    tmp_node_attrs = tmp_graph.node[node.id]
+    tmp_node_attrs = tmp_graph.nodes[node.id]
     tmp_node = Node(tmp_graph, node.id)
 
     # node attributes that are required by 'infer_subgraph_output_nodes' function

@@ -39,7 +39,7 @@ class TestBucketize(unittest.TestCase):
         ref_output_value = np.array([1, 4, 3, 2], dtype=np.int32)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(ref_output_value, res_output_value),
                         'values do not match expected: {} and given: {}'.format(ref_output_value, res_output_value))
@@ -53,7 +53,7 @@ class TestBucketize(unittest.TestCase):
         ref_output_value = np.array([0, 0, 0, 0], dtype=np.int32)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(ref_output_value, res_output_value),
                         'values do not match expected: {} and given: {}'.format(ref_output_value, res_output_value))
@@ -67,7 +67,7 @@ class TestBucketize(unittest.TestCase):
         ref_output_shape = np.array([10, 40], dtype=np.int32)
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))

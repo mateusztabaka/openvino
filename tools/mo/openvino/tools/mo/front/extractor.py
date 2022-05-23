@@ -355,10 +355,10 @@ def create_tensor_nodes(graph: Graph):
     All old nodes are marked as kind='op'
     """
     for node in list(graph.nodes()):
-        node_attr = graph.node[node]
+        node_attr = graph.nodes[node]
         # threat all existing nodes in the graph as operation nodes (in opposite to data nodes created in this function
         # below)
-        graph.node[node]['kind'] = 'op'
+        graph.nodes[node]['kind'] = 'op'
 
         # the Result nodes are just marker operations so we don't need to create output tensors for them
         if node_attr['op'] == 'Result':
@@ -392,7 +392,7 @@ def create_tensor_nodes(graph: Graph):
             if port not in added_out_ports:
                 graph.add_edges_from([(node, out_tensor_dict[port], get_specific_edge_attrs(attrs, 'out_attrs'))])
                 # merge additional data node attributes from original edge
-                graph.node[out_tensor_dict[port]].update(get_specific_edge_attrs(attrs, 'data_attrs'))
+                graph.nodes[out_tensor_dict[port]].update(get_specific_edge_attrs(attrs, 'data_attrs'))
                 added_out_ports.add(port)
         # graph.add_edges_from([(node, out_tensor_dict[port], {'out' : port}) for port in out_ports])
 
@@ -432,7 +432,7 @@ def extract_node_attrs(graph: Graph, extractor: callable):
             try:
                 supported, new_attrs = extractor(Node(graph, node))
             except Exception as e:
-                log.warning('Node attributes: {}'.format(graph.node[node]))
+                log.warning('Node attributes: {}'.format(graph.nodes[node]))
                 raise Error(
                     'Unexpected exception happened during extracting attributes for node {}.' +
                     '\nOriginal exception message: {}',
@@ -444,7 +444,7 @@ def extract_node_attrs(graph: Graph, extractor: callable):
                 update_ie_fields(new_attrs)
             add_attrs_props(new_attrs)
         for key, val in new_attrs.items():
-            graph.node[node][key] = val
+            graph.nodes[node][key] = val
         if not supported:
             unsupported.add(Node(graph, node))
 
@@ -747,7 +747,7 @@ def add_output_ops(graph: Graph, user_defined_outputs: dict, inputs: dict = None
 
     # remove previously generated Result if any
     graph.remove_nodes_from([node_name for node_name in graph.nodes() if
-                             'op' in graph.node[node_name] and graph.node[node_name]['op'] == 'Result'])
+                             'op' in graph.nodes[node_name] and graph.nodes[node_name]['op'] == 'Result'])
 
     if user_defined_outputs is None:
         inputs = graph.get_nodes_with_attributes(op='Parameter') if inputs is None else list(inputs.keys())
@@ -814,7 +814,7 @@ def add_outputs_identity(graph: Graph, outputs: list, add_edge: callable, params
 
 def set_is_input(graph: Graph, placeholders: list, is_input: bool):
     for placeholder in placeholders:
-        graph.node[placeholder]['is_input'] = is_input
+        graph.nodes[placeholder]['is_input'] = is_input
 
 
 def check_input(graph: Graph, node_name: str):

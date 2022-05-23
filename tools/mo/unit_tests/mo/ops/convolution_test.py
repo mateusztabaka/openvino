@@ -48,7 +48,7 @@ class TestConvolutionPartialInfer(unittest.TestCase):
         conv_node = Node(graph, 'conv_node')
         Convolution.infer(conv_node)
         exp_shape = np.array([1, 64, 225, 225])
-        res_shape = graph.node['conv_output']['shape']
+        res_shape = graph.nodes['conv_output']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -79,7 +79,7 @@ class TestConvolutionPartialInfer(unittest.TestCase):
         conv_node = Node(graph, 'conv_node')
         Convolution.infer(conv_node)
         exp_shape = shape_array([1, 64, dynamic_dimension_value, 225])
-        res_shape = graph.node['conv_output']['shape']
+        res_shape = graph.nodes['conv_output']['shape']
         self.assertTrue(strict_compare_tensors(exp_shape, res_shape))
 
     def test_caffe_conv2d_infer_no_shape(self):

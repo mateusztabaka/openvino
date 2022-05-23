@@ -14,13 +14,13 @@ def extension_extractor(node, ex_cls, disable_omitting_optional: bool = False,
                         enable_flattening_optional_params: bool = False):
     ex = ex_cls()
     supported = ex.extract(node)
-    return node.graph.node[node.id] if supported else None
+    return node.graph.nodes[node.id] if supported else None
 
 
 def extension_op_extractor(node, op_cls):
     op_cls.update_node_stat(node)
     # TODO Need to differentiate truly supported ops extractors and ops extractors generated here
-    return node.graph.node[node.id]
+    return node.graph.nodes[node.id]
 
 
 def find_case_insensitive_duplicates(extractors_collection: dict):

@@ -39,7 +39,7 @@ class TestPriorBoxClusteredPartialInfer(unittest.TestCase):
         pbc_node = Node(graph, 'pbc')
         PriorBoxClusteredOp.priorbox_clustered_infer(pbc_node)
         exp_shape = np.array([1, 2, 12996])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -64,6 +64,6 @@ class TestPriorBoxClusteredPartialInfer(unittest.TestCase):
         pbc_node = Node(graph, 'pbc')
         PriorBoxClusteredOp.priorbox_clustered_infer(pbc_node)
         exp_shape = np.array([1, 2, 12996])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])

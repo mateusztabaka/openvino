@@ -62,7 +62,7 @@ class PadTFToPadTest(unittest.TestCase):
         replacer.find_and_replace_pattern(graph)
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'result', check_op_attrs=True)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(op='Pad')[0]]['name'] == 'tfpad_name')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(op='Pad')[0]]['name'] == 'tfpad_name')
         self.assertTrue(flag, resp)
 
     def test_2_inputs(self):

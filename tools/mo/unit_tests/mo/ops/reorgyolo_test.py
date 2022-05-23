@@ -42,6 +42,6 @@ class TestReorgYOLO(unittest.TestCase):
         reorg_node = Node(graph, 'reorg')
         ReorgYoloOp.reorgyolo_infer(reorg_node)
         exp_shape = calculate_reorgyolo_output(np.array([1, 3, 227, 227]), 2)
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])

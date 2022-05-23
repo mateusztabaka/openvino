@@ -38,7 +38,7 @@ class TestPriorBoxPartialInfer(unittest.TestCase):
         pb_node = Node(graph, 'pb')
         PriorBoxOp.priorbox_infer(pb_node)
         exp_shape = np.array([1, 2, 4 * 19 * 19 * 2])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -63,7 +63,7 @@ class TestPriorBoxPartialInfer(unittest.TestCase):
         pb_node = Node(graph, 'pb')
         PriorBoxOp.priorbox_infer(pb_node)
         exp_shape = np.array([1, 2, 4 * 19 * 19 * 4])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -88,7 +88,7 @@ class TestPriorBoxPartialInfer(unittest.TestCase):
         pb_node = Node(graph, 'pb')
         PriorBoxOp.priorbox_infer(pb_node)
         exp_shape = np.array([1, 2, 4 * 19 * 19 * 2])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -113,7 +113,7 @@ class TestPriorBoxPartialInfer(unittest.TestCase):
         pb_node = Node(graph, 'pb')
         PriorBoxOp.priorbox_infer(pb_node)
         exp_shape = np.array([1, 2, 4 * 19 * 19 * 4])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -138,6 +138,6 @@ class TestPriorBoxPartialInfer(unittest.TestCase):
         pb_node = Node(graph, 'pb')
         PriorBoxOp.priorbox_infer(pb_node)
         exp_shape = np.array([1, 2, 4*32*32*21])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])

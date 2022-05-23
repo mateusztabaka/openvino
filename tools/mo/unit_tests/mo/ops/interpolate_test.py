@@ -114,9 +114,9 @@ class TestInterpolateOp(unittest.TestCase):
         msg = "Interpolate-4 infer failed for case: sizes={}, scales={}, pads_begin={}, pads_end={}, axes={}," \
               " expected_shape={}, actual_shape={}"
 
-        self.assertTrue(np.array_equal(graph.node['interpolate_data']['shape'], int64_array(output_shape)),
+        self.assertTrue(np.array_equal(graph.nodes['interpolate_data']['shape'], int64_array(output_shape)),
                         msg.format(sizes, scales, pads_begin, pads_end, axes, output_shape,
-                                   graph.node['interpolate_data']['shape']))
+                                   graph.nodes['interpolate_data']['shape']))
 
     @generate(*[([0], [0], [1, 3, 100, 200], [1, 3, 350, 150], [350, 150], [3.5, 150 / 200], [2, 3]),
                 ([0, 3, 10, 10], [0], [16, 7, 190, 400], [8, 10, 390, 600],
@@ -165,9 +165,9 @@ class TestInterpolateOp(unittest.TestCase):
         msg = "Interpolate-4 infer failed for case: sizes={}, scales={}, pads_begin={}, pads_end={}, axes={}," \
               " expected_shape={}, actual_shape={}"
 
-        self.assertTrue(np.array_equal(graph.node['interpolate_data']['shape'], int64_array(output_shape)),
+        self.assertTrue(np.array_equal(graph.nodes['interpolate_data']['shape'], int64_array(output_shape)),
                         msg.format(sizes, scales, pads_begin, pads_end, axes, output_shape,
-                                   graph.node['interpolate_data']['shape']))
+                                   graph.nodes['interpolate_data']['shape']))
 
     @generate(*[([0], [0], [1, 3, 100, 200], [1, 3, 350, 150], [1, 3, 350, 150], [1.0, 1.0, 3.5, 150 / 200]),
                 ([0, 3, 10, 10], [0], [16, 7, 190, 400], [8, 10, 390, 600],
@@ -212,9 +212,9 @@ class TestInterpolateOp(unittest.TestCase):
         msg = "Interpolate-4 infer failed for case: sizes={}, scales={}, pads_begin={}, pads_end={}," \
               " expected_shape={}, actual_shape={}"
 
-        self.assertTrue(np.array_equal(graph.node['interpolate_data']['shape'], int64_array(output_shape)),
+        self.assertTrue(np.array_equal(graph.nodes['interpolate_data']['shape'], int64_array(output_shape)),
                         msg.format(sizes, scales, pads_begin, pads_end, output_shape,
-                                   graph.node['interpolate_data']['shape']))
+                                   graph.nodes['interpolate_data']['shape']))
 
     @generate(*[([0], [0], [1, 3, 100, 200], [1, 3, 350, 150], [1, 3, 350, 150], [1.0, 1.0, 3.5, 150 / 200]),
                 ([0, 3, 10, 10], [0], [16, 7, 190, 400], [8, 10, 390, 600],
@@ -262,6 +262,6 @@ class TestInterpolateOp(unittest.TestCase):
         msg = "Interpolate-4 infer failed for case: sizes={}, scales={}, pads_begin={}, pads_end={}," \
               " expected_shape={}, actual_shape={}"
 
-        self.assertTrue(np.array_equal(graph.node['interpolate_data']['shape'], int64_array(output_shape)),
+        self.assertTrue(np.array_equal(graph.nodes['interpolate_data']['shape'], int64_array(output_shape)),
                         msg.format(sizes, scales, pads_begin, pads_end, output_shape,
-                                   graph.node['interpolate_data']['shape']))
+                                   graph.nodes['interpolate_data']['shape']))

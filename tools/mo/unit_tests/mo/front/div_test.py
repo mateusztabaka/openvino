@@ -43,7 +43,7 @@ class TestDiv(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'output', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(type='Multiply')[0]]['name'] == 'my_div')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(type='Multiply')[0]]['name'] == 'my_div')
 
     def test_div_test_2(self):
         # Test with two same inputs from one placeholder
@@ -64,7 +64,7 @@ class TestDiv(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'output', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(type='Multiply')[0]]['name'] == 'my_div')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(type='Multiply')[0]]['name'] == 'my_div')
 
     def test_div_with_integer(self):
         # Test where transformation should not be applied because the divisor is integer

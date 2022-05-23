@@ -40,8 +40,8 @@ class TestReverse(unittest.TestCase):
         Reverse.infer(reverse_node)
         exp_shape = np.array([1, 4])
         exp_value = np.array([[227, 227, 3, 1]])
-        res_shape = graph.node['node_3']['shape']
-        res_value = graph.node['node_3']['value']
+        res_shape = graph.nodes['node_3']['shape']
+        res_value = graph.nodes['node_3']['value']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
         for i in range(0, len(exp_value[0])):

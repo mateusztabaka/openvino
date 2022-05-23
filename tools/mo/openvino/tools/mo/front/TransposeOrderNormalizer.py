@@ -40,7 +40,7 @@ class TransposeOrderNormalizer(FrontReplacementSubgraph):
                 const = Const(graph, {'value': node.order}).create_node()
                 node.add_input_port(1, skip_if_exist=True)
                 const.out_port(0).connect(node.in_port(1))
-                del graph.node[node.id]['order']
+                del graph.nodes[node.id]['order']
             elif node.has('order') and node.order is None:
                 assert node.has_and_set('reverse_order')
             else:

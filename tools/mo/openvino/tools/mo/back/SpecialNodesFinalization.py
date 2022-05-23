@@ -96,7 +96,7 @@ class CreateConstNodesReplacement(BackReplacementPattern):
                 const_node.type_infer(const_node)
                 graph.add_edges_from([(node_copy.id, const_node_name, {'in': 0, 'bin': 'custom'})])
             elif not self._check_that_node_from_body(node):
-                log.debug('node = {}'.format(node.graph.node[node.id]))
+                log.debug('node = {}'.format(node.graph.nodes[node.id]))
                 raise Error(
                     'Discovered data node without inputs and value, node.name = {}, consumer.name = {}. ' +
                     refer_to_faq_msg(23),

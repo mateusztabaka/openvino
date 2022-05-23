@@ -43,7 +43,7 @@ class TestSub(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'output', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(type='Add')[0]]['name'] == 'my_sub')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(type='Add')[0]]['name'] == 'my_sub')
 
     def test_sub_test_2(self):
         # Test with two same inputs from one placeholder
@@ -64,4 +64,4 @@ class TestSub(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'output', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        self.assertTrue(graph.node[graph.get_nodes_with_attributes(type='Add')[0]]['name'] == 'my_sub')
+        self.assertTrue(graph.nodes[graph.get_nodes_with_attributes(type='Add')[0]]['name'] == 'my_sub')

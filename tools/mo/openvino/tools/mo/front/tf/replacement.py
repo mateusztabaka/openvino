@@ -152,7 +152,7 @@ class FrontReplacementFromConfigFileOp(FrontReplacementFromConfigFileSubGraph):
             node = merge_nodes(graph, match.matched_nodes_names(), replacement_desc.get_inputs_description(),
                                replacement_desc.get_outputs_description())
             node.name = graph.unique_id(op.attrs['type'])
-            node_attrs = graph.node[node.id]
+            node_attrs = graph.nodes[node.id]
             # copy attributes which are defined in the custom operation
             for key in op.attrs.keys():
                 if key not in ['name', 'op']:

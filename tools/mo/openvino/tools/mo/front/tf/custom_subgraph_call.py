@@ -61,7 +61,7 @@ def merge_nodes(graph: Graph, nodes_to_merge_names: list, inputs_desc: list = No
     new_node_name = graph.unique_id("TFSubgraphCall_")
     log.info("Create new node with name '{}' for nodes '{}'".format(new_node_name, ', '.join(nodes_to_merge_names)))
     graph.add_node(new_node_name)
-    new_node_attrs = graph.node[new_node_name]
+    new_node_attrs = graph.nodes[new_node_name]
 
     new_node_attrs['name'] = new_node_name
     set_tf_custom_call_node_attrs(new_node_attrs)

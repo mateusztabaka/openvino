@@ -41,7 +41,7 @@ class TestPoolingPartialInfer(unittest.TestCase):
 
         Pooling.infer(pool_node)
         exp_shape = np.array([1, 3, 131, 131])
-        res_shape = graph.node['node_2']['shape']
+        res_shape = graph.nodes['node_2']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -68,7 +68,7 @@ class TestPoolingPartialInfer(unittest.TestCase):
 
         Pooling.infer(pool_node)
         exp_shape = shape_array([1, dynamic_dimension_value, dynamic_dimension_value, 131])
-        res_shape = graph.node['node_2']['shape']
+        res_shape = graph.nodes['node_2']['shape']
         self.assertTrue(strict_compare_tensors(exp_shape, res_shape))
 
     def test_pooling_infer_decrement_input_spatial(self):
@@ -93,7 +93,7 @@ class TestPoolingPartialInfer(unittest.TestCase):
 
         Pooling.infer(pool_node)
         exp_shape = np.array([1, 3, 75, 75])
-        res_shape = graph.node['node_2']['shape']
+        res_shape = graph.nodes['node_2']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -118,7 +118,7 @@ class TestPoolingPartialInfer(unittest.TestCase):
 
         Pooling.infer(pool_node)
         exp_shape = np.array([1, 3, 130, 130])
-        res_shape = graph.node['node_2']['shape']
+        res_shape = graph.nodes['node_2']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -142,7 +142,7 @@ class TestPoolingPartialInfer(unittest.TestCase):
 
         pool_node = Node(graph, 'pool')
         Pooling.infer(pool_node)
-        res_shape = graph.node['node_2']['shape']
+        res_shape = graph.nodes['node_2']['shape']
         self.assertIsNone(res_shape)
 
     def test_pooling_infer_wrong_input_shape(self):
@@ -191,6 +191,6 @@ class TestPoolingPartialInfer(unittest.TestCase):
 
         Pooling.infer(pool_node)
         exp_shape = np.array([1, 3, 127, 127])
-        res_shape = graph.node['node_2']['shape']
+        res_shape = graph.nodes['node_2']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])

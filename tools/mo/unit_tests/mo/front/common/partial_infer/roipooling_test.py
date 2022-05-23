@@ -37,7 +37,7 @@ class TestRoipoolingInfer(unittest.TestCase):
 
         roipooling_infer(roipooling_node)
         exp_shape = np.array([150, 256, 6, 6])
-        res_shape = graph.node['output']['shape']
+        res_shape = graph.nodes['output']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -58,7 +58,7 @@ class TestRoipoolingInfer(unittest.TestCase):
         roipooling_node = Node(graph, 'roipool')
 
         roipooling_infer(roipooling_node)
-        self.assertIsNone(graph.node['output']['shape'])
+        self.assertIsNone(graph.nodes['output']['shape'])
 
     def test_roipooling_infer_tf(self):
         graph = build_graph(nodes_attributes,
@@ -81,6 +81,6 @@ class TestRoipoolingInfer(unittest.TestCase):
 
         roipooling_infer(roipooling_node)
         exp_shape = np.array([150, 7, 6, 256])
-        res_shape = graph.node['output']['shape']
+        res_shape = graph.nodes['output']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])

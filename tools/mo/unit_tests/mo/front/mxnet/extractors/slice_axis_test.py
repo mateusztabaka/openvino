@@ -61,5 +61,5 @@ class TestMXNetSliceAxisInfer(unittest.TestCase):
         slice_axis_node = Node(graph, 'slice_axis_node')
         mxnet_slice_axis_infer(slice_axis_node)
         res_shape = [1, 15, 19, 19]
-        for i in range(0, len(graph.node['node_3']['shape'])):
-            self.assertEqual(graph.node['node_3']['shape'][i], res_shape[i])
+        for i in range(0, len(graph.nodes['node_3']['shape'])):
+            self.assertEqual(graph.nodes['node_3']['shape'][i], res_shape[i])

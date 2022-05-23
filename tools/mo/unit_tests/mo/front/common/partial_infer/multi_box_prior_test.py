@@ -34,7 +34,7 @@ class TestMultiBoxPriorInfer(unittest.TestCase):
 
         multi_box_prior_infer_mxnet(multi_box_prior_node)
         exp_shape = np.array([1, 2, 8664])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 

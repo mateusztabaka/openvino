@@ -42,7 +42,7 @@ class TestConcatPartialInfer(unittest.TestCase):
 
         concat_node = Node(graph, 'concat')
         concat_infer(concat_node)
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         self.assertTrue(strict_compare_tensors(output_shape, res_shape))
 
     @generate(*[(shape_array([1]), shape_array([4]), shape_array([1, 4]), 0),
@@ -64,7 +64,7 @@ class TestConcatPartialInfer(unittest.TestCase):
 
         concat_node = Node(graph, 'concat')
         concat_infer(concat_node)
-        res_value = graph.node['node_3']['value']
+        res_value = graph.nodes['node_3']['value']
         self.assertTrue(strict_compare_tensors(output_value, res_value))
 
     def test_concat_infer_not_match(self):

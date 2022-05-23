@@ -20,4 +20,4 @@ class EnableConstantStridedSlice(BackReplacementPattern):
 
     @staticmethod
     def replace_pattern(graph: Graph, match: dict):
-        graph.node[match['const_strided_slice'].id]['type'] = 'StridedSlice'
+        graph.nodes[match['const_strided_slice'].id]['type'] = 'StridedSlice'

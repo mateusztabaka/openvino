@@ -70,7 +70,7 @@ class TestCropPartialInfer(unittest.TestCase):
         Crop.infer(crop_node)
 
         exp_shape = int64_array([1, 3, 204, 194])
-        res_shape = graph.node['crop_output']['shape']
+        res_shape = graph.nodes['crop_output']['shape']
 
         self.assertTrue(np.array_equal(exp_shape, res_shape),
                         'shapes do not match expected: {} and given: {}'.format(exp_shape, res_shape))
@@ -100,7 +100,7 @@ class TestCropPartialInfer(unittest.TestCase):
         Crop.infer(crop_node)
 
         exp_shape = int64_array([1, 3, 100, 150])
-        res_shape = graph.node['crop_output']['shape']
+        res_shape = graph.nodes['crop_output']['shape']
 
         self.assertTrue(np.array_equal(exp_shape, res_shape),
                         'shapes do not match expected: {} and given: {}'.format(exp_shape, res_shape))
@@ -131,7 +131,7 @@ class TestCropPartialInfer(unittest.TestCase):
         Crop.infer(crop_node)
 
         exp_shape = int64_array([1, 3, 100, 150])
-        res_shape = graph.node['crop_output']['shape']
+        res_shape = graph.nodes['crop_output']['shape']
 
         self.assertTrue(np.array_equal(exp_shape, res_shape),
                         'shapes do not match expected: {} and given: {}'.format(exp_shape, res_shape))

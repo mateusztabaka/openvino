@@ -223,11 +223,11 @@ class TestInputAddition(UnitTestWithMockedTelemetry):
         graph = build_graph(nodes, edges)
         add_input_ops(graph=graph, user_defined_inputs=inputs, before_infer=True)
         new_input = list(graph.in_edges('conv_1'))[0][0]
-        self.assertFalse(graph.node['old_input']['is_input'])
-        self.assertTrue(graph.node[new_input]['is_input'])
+        self.assertFalse(graph.nodes['old_input']['is_input'])
+        self.assertTrue(graph.nodes[new_input]['is_input'])
         self.assertTrue((new_input, 'conv_1') in graph.edges())
         self.assertTrue(('old_input', 'conv_1') not in graph.edges())
-        shapes_are_equal = np.array_equal(graph.node[new_input]['shape'], shape)
+        shapes_are_equal = np.array_equal(graph.nodes[new_input]['shape'], shape)
         self.assertTrue(shapes_are_equal)
 
     def test_one_input_no_shape(self):
@@ -259,11 +259,11 @@ class TestInputAddition(UnitTestWithMockedTelemetry):
         add_input_ops(graph=graph, user_defined_inputs=inputs, before_infer=False)
         new_input = list(graph.in_edges(list(graph.in_edges('conv_1'))[0][0]))[0][0]
         new_input_data = list(graph.in_edges('conv_1'))[0][0]
-        self.assertFalse(graph.node['old_input']['is_input'])
-        self.assertTrue(graph.node[new_input]['is_input'])
+        self.assertFalse(graph.nodes['old_input']['is_input'])
+        self.assertTrue(graph.nodes[new_input]['is_input'])
         self.assertTrue((new_input_data, 'conv_1') in graph.edges())
         self.assertTrue(('old_input_data', 'conv_1') not in graph.edges())
-        self.assertIsNotNone(graph.node[new_input_data]['shape'])
+        self.assertIsNotNone(graph.nodes[new_input_data]['shape'])
 
     def test_two_inputs_two_shapes_positive_1(self):
         shape_1 = [1, 2, 3, 4]
@@ -289,13 +289,13 @@ class TestInputAddition(UnitTestWithMockedTelemetry):
         add_input_ops(graph=graph, user_defined_inputs=inputs, before_infer=True)
         new_input_1 = list(graph.in_edges('node_1'))[0][0]
         new_input_2 = list(graph.in_edges('node_4'))[0][0]
-        self.assertFalse(graph.node['input_1']['is_input'])
-        self.assertTrue(graph.node[new_input_1]['is_input'])
-        self.assertTrue(graph.node[new_input_2]['is_input'])
+        self.assertFalse(graph.nodes['input_1']['is_input'])
+        self.assertTrue(graph.nodes[new_input_1]['is_input'])
+        self.assertTrue(graph.nodes[new_input_2]['is_input'])
         self.assertTrue((new_input_1, 'node_1') in graph.edges())
         self.assertTrue((new_input_2, 'node_4') in graph.edges())
-        self.assertTrue(strict_compare_tensors(shape_1, graph.node[new_input_1]['shape']))
-        self.assertTrue(strict_compare_tensors(shape_2, graph.node[new_input_2]['shape']))
+        self.assertTrue(strict_compare_tensors(shape_1, graph.nodes[new_input_1]['shape']))
+        self.assertTrue(strict_compare_tensors(shape_2, graph.nodes[new_input_2]['shape']))
 
     def test_two_inputs_two_shapes_not_all_inputs(self):
         shape_1 = [1, 2, 3, 4]
@@ -347,8 +347,8 @@ class TestInputAddition(UnitTestWithMockedTelemetry):
 
         # also checks that new old_input was changed
         new_input = list(graph.in_edges('conv_1'))[0][0]
-        self.assertFalse(graph.node['old_input']['is_input'])
-        self.assertTrue(graph.node[new_input]['is_input'])
+        self.assertFalse(graph.nodes['old_input']['is_input'])
+        self.assertTrue(graph.nodes[new_input]['is_input'])
         self.assertTrue((new_input, 'conv_1') in graph.edges())
         self.assertTrue(('old_input', 'conv_1') not in graph.edges())
 
@@ -388,7 +388,7 @@ class TestInputAddition(UnitTestWithMockedTelemetry):
         # Checks for new input and edges
         self.assertTrue('conv_1/placeholder_out_port_0' in graph.nodes())
         new_input = 'conv_1/placeholder_out_port_0'
-        self.assertTrue(graph.node[new_input]['is_input'])
+        self.assertTrue(graph.nodes[new_input]['is_input'])
         self.assertTrue((new_input, 'relu_1') in graph.edges())
         self.assertTrue(('old_input', 'relu_1') not in graph.edges())
 
@@ -431,7 +431,7 @@ class TestInputAddition(UnitTestWithMockedTelemetry):
         self.assertTrue('conv_1/placeholder_out_port_0' in graph.nodes())
         new_input = 'conv_1/placeholder_out_port_0'
 
-        self.assertTrue(graph.node[new_input]['is_input'])
+        self.assertTrue(graph.nodes[new_input]['is_input'])
 
         self.assertTrue(Node(graph, 'relu_1').in_node(0)['data_attr'] == 'data_attr_value')
         self.assertTrue(Node(graph, 'relu_1').in_edge(0)['edge_attr'] == 'edge_value')

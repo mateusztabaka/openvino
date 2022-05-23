@@ -146,7 +146,7 @@ def muladd_to_scaleshift_action(graph: Graph, match: dict):
     scsh.add_input_port(2)
     scsh.add_output_port(0)
 
-    update_ie_fields(graph.node[op_node])
+    update_ie_fields(graph.nodes[op_node])
 
     graph.add_edges_from([
         (input.node, op_node, {'in': 0}),

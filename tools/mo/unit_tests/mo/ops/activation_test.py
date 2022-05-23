@@ -48,8 +48,8 @@ class TestActivationOp(unittest.TestCase):
         activation_node = Node(graph, 'activation_node')
         Elu.infer(activation_node)
         exp_shape = np.array([4])
-        res_shape = graph.node['node_3']['shape']
-        res_value = graph.node['node_3']['value']
+        res_shape = graph.nodes['node_3']['shape']
+        res_value = graph.nodes['node_3']['value']
         exp_value = np.array([6., -0.98168436, -0.86466472, -0.63212056])
         for i, value in enumerate(exp_shape):
             self.assertEqual(res_shape[i], value)
@@ -78,8 +78,8 @@ class TestActivationOp(unittest.TestCase):
         activation_node = Node(graph, 'activation_node')
         SoftPlus.infer(activation_node)
         exp_shape = np.array([4])
-        res_shape = graph.node['node_3']['shape']
-        res_value = graph.node['node_3']['value']
+        res_shape = graph.nodes['node_3']['shape']
+        res_value = graph.nodes['node_3']['value']
         exp_value = np.array([0.3132617, 0.6931472, 1.3132617, 20.0])
         for i, value in enumerate(exp_shape):
             self.assertEqual(res_shape[i], value)
@@ -108,8 +108,8 @@ class TestActivationOp(unittest.TestCase):
         activation_node = Node(graph, 'activation_node')
         Mish.infer(activation_node)
         exp_shape = np.array([4])
-        res_shape = graph.node['node_3']['shape']
-        res_value = graph.node['node_3']['value']
+        res_shape = graph.nodes['node_3']['shape']
+        res_value = graph.nodes['node_3']['value']
         exp_value = np.array([-0.30340146, 0.0, 0.8650984, 20.0])
         for i, value in enumerate(exp_shape):
             self.assertEqual(res_shape[i], value)
@@ -137,8 +137,8 @@ class TestActivationOp(unittest.TestCase):
         activation_node = Node(graph, 'activation_node')
         Swish.infer(activation_node)
         exp_shape = np.array([4])
-        res_shape = graph.node['node_3']['shape']
-        res_value = graph.node['node_3']['value']
+        res_shape = graph.nodes['node_3']['shape']
+        res_value = graph.nodes['node_3']['value']
         exp_value = np.array([-0.26894142, 0.0, 0.73105858, 19.99999996])
         for i, value in enumerate(exp_shape):
             self.assertEqual(res_shape[i], value)

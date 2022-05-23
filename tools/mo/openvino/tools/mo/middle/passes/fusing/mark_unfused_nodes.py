@@ -14,12 +14,12 @@ def _check_lin_op(node: Node, layout: str):
     if node.soft_get('op') in lin_ops:
         weights_id = get_value_id(node)
         if weights_id is None:
-            node.graph.node[node.id]['can_be_fused'] = False
+            node.graph.nodes[node.id]['can_be_fused'] = False
             log.info('[ FUSING ] Node {} wasn\'t marked as fusable (no weights, probably this is element-wise operation'
                      ' that is not fusable)'.format(node.id))
             return
 
-        node.graph.node[node.id]['can_be_fused'] = True
+        node.graph.nodes[node.id]['can_be_fused'] = True
         log.info('[ FUSING ] Node {} marked as fusable'.format(node.id))
 
 
@@ -33,7 +33,7 @@ def mark_unfused_nodes(graph: Graph, regex_masks: str):
         for mask in regex_masks:
             res = re.findall(mask, node.name)
             if res and len(res):
-                graph.node[node.id]['can_be_fused'] = False
+                graph.nodes[node.id]['can_be_fused'] = False
                 log.info('[ FUSING ] Node {} wasn\'t marked as fusable (user decision {})'.format(node.id,mask))
                 disabled = True
         if not disabled:

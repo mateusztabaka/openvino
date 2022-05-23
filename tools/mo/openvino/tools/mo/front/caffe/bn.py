@@ -21,8 +21,8 @@ class BNToScaleShift(FrontReplacementOp):
     def replace_op(self, graph: Graph, node: Node):
         attrs = {'name': node.id + "/ScaleShift_"}
 
-        param = graph.node[node.id]['pb'].bn_param
-        pb_model = graph.node[node.id]['model_pb']
+        param = graph.nodes[node.id]['pb'].bn_param
+        pb_model = graph.nodes[node.id]['model_pb']
 
         blobs = pb_model.blobs
 

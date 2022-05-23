@@ -40,7 +40,7 @@ class ReduceAxisNormalizer(FrontReplacementSubgraph):
                 const = Const(graph, {'name': node_name + '/axis', 'value': node.axis}).create_node()
                 node.add_input_port(1, skip_if_exist=True)
                 const.out_port(0).connect(node.in_port(1))
-                del graph.node[node.id]['axis']
+                del graph.nodes[node.id]['axis']
             else:
                 # The default (if there is no 'axis') is to reduce over all the dimensions of the input tensor.
                 axes = create_op_with_const_inputs(graph, Range, {0: int64_array(0), 2: int64_array(1)},

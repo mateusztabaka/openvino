@@ -221,7 +221,7 @@ class CustomReplacementDescriptorPoints(CustomReplacementDescriptor):
         output_tensors = set()
         input_nodes_mapping = dict()  # key is the input tensor name, value is the pair: (input_port, output_node_name)
         for src_node_name, dst_node_name, edge_attrs in graph.edges(data=True):
-            dst_node = graph.node[dst_node_name]
+            dst_node = graph.nodes[dst_node_name]
 
             # edge outside sub-graph into sub-graph
             if (src_node_name not in matched_nodes) and (dst_node_name in matched_nodes):
@@ -276,7 +276,7 @@ class CustomReplacementDescriptorScope(CustomReplacementDescriptor):
         output_tensors = set()
         input_nodes_mapping = dict()  # key is the input tensor name, value is the pair: (input_port, output_node_name)
         for src_node_name, dst_node_name, edge_attrs in graph.edges(data=True):
-            dst_node = graph.node[dst_node_name]
+            dst_node = graph.nodes[dst_node_name]
 
             # edge outside sub-graph into sub-graph
             if (src_node_name not in matched_nodes) and (dst_node_name in matched_nodes):

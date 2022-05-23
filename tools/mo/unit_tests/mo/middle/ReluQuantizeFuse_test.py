@@ -271,7 +271,7 @@ class ReluQuantizeFuseTests(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'output', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        np.array_equal(np.full([1, 2, 3, 4], float('-inf'), dtype=np.float32), graph_ref.node['const_1_d']['value'])
+        np.array_equal(np.full([1, 2, 3, 4], float('-inf'), dtype=np.float32), graph_ref.nodes['const_1_d']['value'])
 
     def test_relu_extra_outputs_i1_case(self):
         graph = build_graph(nodes, relu_extra_output,
@@ -288,7 +288,7 @@ class ReluQuantizeFuseTests(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'relu', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        np.array_equal(np.full([1, 2, 3, 4], float('-inf'), dtype=np.float32), graph_ref.node['const_1_d']['value'])
+        np.array_equal(np.full([1, 2, 3, 4], float('-inf'), dtype=np.float32), graph_ref.nodes['const_1_d']['value'])
 
     def test_const_extra_outputs_i1_case(self):
         graph = build_graph(nodes, const_extra,
@@ -305,4 +305,4 @@ class ReluQuantizeFuseTests(unittest.TestCase):
 
         (flag, resp) = compare_graphs(graph, graph_ref, 'relu', check_op_attrs=True)
         self.assertTrue(flag, resp)
-        np.array_equal(np.full([1, 2, 3, 4], float('-inf'), dtype=np.float32), graph_ref.node['const_1_d']['value'])
+        np.array_equal(np.full([1, 2, 3, 4], float('-inf'), dtype=np.float32), graph_ref.nodes['const_1_d']['value'])

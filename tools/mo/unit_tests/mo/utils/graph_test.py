@@ -142,7 +142,7 @@ class TestGraphUtils(UnitTestWithMockedTelemetry):
         """
         graph = Graph()
         graph.add_nodes_from(list(range(1, 6)))
-        graph.node[5]['op'] = 'Parameter'
+        graph.nodes[5]['op'] = 'Parameter'
         graph.add_edges_from([(1, 2), (2, 3), (3, 4), (5, 2)])
         self.assertRaises(Error, sub_graph_between_nodes, graph, [1], [4])
 
@@ -156,7 +156,7 @@ class TestGraphUtils(UnitTestWithMockedTelemetry):
         """
         graph = Graph()
         graph.add_nodes_from(list(range(1, 6)))
-        graph.node[5]['op'] = 'Parameter'
+        graph.nodes[5]['op'] = 'Parameter'
         graph.add_edges_from([(1, 2), (2, 3), (3, 4), (5, 2)])
         sub_graph_nodes = sub_graph_between_nodes(graph, [2], [4])
         self.assertIsNotNone(sub_graph_nodes)

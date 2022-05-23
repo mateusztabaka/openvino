@@ -23,27 +23,27 @@ def control_flow_infer(graph: Graph, node_name: str):
     """
        Executes constant control flow. Propagates nodes executability
     """
-    if graph.node[node_name]['kind'] == 'data':
+    if graph.nodes[node_name]['kind'] == 'data':
         return
 
     def mark_executability(node_id: str, is_executable: bool):
-        if is_executable and not graph.node[node_id]['executable']:
+        if is_executable and not graph.nodes[node_id]['executable']:
             return
-        graph.node[node_id]['executable'] = is_executable
+        graph.nodes[node_id]['executable'] = is_executable
 
     in_edges_with_data = graph.in_edges(node_name, data=True)
     in_df_edges_with_data = [(u, v, attrs) for u, v, attrs in in_edges_with_data
                              if 'control_flow_edge' not in attrs or not attrs['control_flow_edge']]
     in_cf_edges_with_data = [(u, v, attrs) for u, v, attrs in in_edges_with_data
                              if 'control_flow_edge' in attrs and attrs['control_flow_edge']]
-    is_executable_df = all([graph.node[u]['executable'] for u, _, attrs in in_df_edges_with_data]
+    is_executable_df = all([graph.nodes[u]['executable'] for u, _, attrs in in_df_edges_with_data]
                            if len(in_df_edges_with_data) else [True])
-    is_executable_cf = all([graph.node[u]['executable'] for u, _, attrs in in_cf_edges_with_data]
+    is_executable_cf = all([graph.nodes[u]['executable'] for u, _, attrs in in_cf_edges_with_data]
                            if len(in_cf_edges_with_data) else [True])
     is_executable = is_executable_df and is_executable_cf
 
     node = Node(graph, node_name)
-    if 'cf_infer' in graph.node[node_name] and callable(node.cf_infer):
+    if 'cf_infer' in graph.nodes[node_name] and callable(node.cf_infer):
         node.cf_infer(node, is_executable, mark_executability)
     else:
         for _, out_data in graph.out_edges(node_name):
@@ -58,7 +58,7 @@ def exit_bound_edges(graph: Graph, sources: list, end_node_attrs: dict):
     result = []
     for node in sources:
         for end_node in nx.descendants(graph, node):
-            if dict_includes(big=graph.node[end_node], sub_dict=end_node_attrs):
+            if dict_includes(big=graph.nodes[end_node], sub_dict=end_node_attrs):
                 result.append((node, end_node, 0, {}))
     return result
 
@@ -207,7 +207,7 @@ def infer_nodes(graph: Graph, nodes: List[Node], constant_subgraph_only: bool = 
             if not debug_logger:
                 log.error('Run Model Optimizer with --log_level=DEBUG for more information.')
             else:
-                log.debug('Node "{}" attributes: {}'.format(node.soft_get('name'), node.graph.node[node.id]))
+                log.debug('Node "{}" attributes: {}'.format(node.soft_get('name'), node.graph.nodes[node.id]))
             raise Error('Stopped shape/value propagation at "{}" node. '.format(node.soft_get('name')) +
                         refer_to_faq_msg(38)) from err
         control_flow_infer(graph, n)
@@ -274,7 +274,7 @@ def override_placeholder_shapes(graph: Graph, user_shapes: dict, batch=None):
         return
     placeholders = graph.get_nodes_with_attributes(kind='op', op='Parameter')
     for node_id in placeholders:
-        node_attrs = graph.node[node_id]
+        node_attrs = graph.nodes[node_id]
         shape = None
         if node_id in user_shapes:
             values = user_shapes[node_id]

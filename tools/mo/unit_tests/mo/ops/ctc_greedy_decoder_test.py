@@ -61,7 +61,7 @@ class TestCTCGreedyDecoder(unittest.TestCase):
         ref_output1_shape = int64_array([4, 100])
 
         # get the result
-        res_output1_shape = graph.node['output1']['shape']
+        res_output1_shape = graph.nodes['output1']['shape']
 
         self.assertTrue(np.array_equal(ref_output1_shape, res_output1_shape),
                         'shapes do not match expected: {} and given: {}'.format(ref_output1_shape, res_output1_shape))

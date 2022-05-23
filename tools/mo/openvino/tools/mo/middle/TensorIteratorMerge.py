@@ -183,7 +183,7 @@ class TensorIteratorMerge(MiddleReplacementPattern):
 
         body = Graph(name='body')
         body.graph = graph.graph
-        body.add_nodes_from([(node, graph.node[node]) for node in body_nodes])
+        body.add_nodes_from([(node, graph.nodes[node]) for node in body_nodes])
         body.add_edges_from(
             [(u, v, k, d) for u, v, k, d in graph.edges(data=True, keys=True) if u in body_nodes and v in body_nodes])
 

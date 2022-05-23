@@ -45,7 +45,7 @@ class TestUpsampleOp(unittest.TestCase):
         graph.graph['layout'] = 'NCHW'
         upsample_node = Node(graph, 'upsample')
         UpsampleOp.upsample_infer(upsample_node)
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         self.assertTrue(strict_compare_tensors(expected_shape, res_shape))
 
     @generate(*[
@@ -75,5 +75,5 @@ class TestUpsampleOp(unittest.TestCase):
         graph.graph['layout'] = 'NCHW'
         upsample_node = Node(graph, 'upsample')
         UpsampleOp.upsample_infer(upsample_node)
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         self.assertTrue(strict_compare_tensors(expected_shape, res_shape))

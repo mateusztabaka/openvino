@@ -88,7 +88,7 @@ class TestScatterNDUpdate(unittest.TestCase):
         ref_output_shape = np.array([10, 40], dtype=np.int32)
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -102,7 +102,7 @@ class TestScatterNDUpdate(unittest.TestCase):
         ref_output_shape = np.array([20, 30], dtype=np.int32)
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -116,7 +116,7 @@ class TestScatterNDUpdate(unittest.TestCase):
         ref_output_shape = np.array([20, 30, 5], dtype=np.int32)
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -130,7 +130,7 @@ class TestScatterNDUpdate(unittest.TestCase):
         ref_output_shape = np.array([10, 40, 50], dtype=np.int32)
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -141,7 +141,7 @@ class TestScatterNDUpdate(unittest.TestCase):
         ScatterNDUpdate.infer(scatternd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output5, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output5, res_output_value))
@@ -152,7 +152,7 @@ class TestScatterNDUpdate(unittest.TestCase):
         ScatterNDUpdate.infer(scatternd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output6, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output6, res_output_value))
@@ -163,7 +163,7 @@ class TestScatterNDUpdate(unittest.TestCase):
         ScatterNDUpdate.infer(scatternd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output7, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output7, res_output_value))
@@ -174,7 +174,7 @@ class TestScatterNDUpdate(unittest.TestCase):
         ScatterNDUpdate.infer(scatternd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output8, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output8, res_output_value))
@@ -185,7 +185,7 @@ class TestScatterNDUpdate(unittest.TestCase):
         ScatterNDUpdate.infer(scatternd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output9, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output8, res_output_value))

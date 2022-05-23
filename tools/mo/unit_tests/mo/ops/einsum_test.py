@@ -72,7 +72,7 @@ class TestEinsum(unittest.TestCase):
         Einsum.infer(einsum_node)
 
         # get the result
-        res_output_shape = graph.node['einsum_node_d']['shape']
+        res_output_shape = graph.nodes['einsum_node_d']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'shape does not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))

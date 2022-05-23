@@ -40,7 +40,7 @@ class SsdPatternRemoveReshape(FrontReplacementSubgraph):
 
         # concat should be performed for the third axis
         concat_node = match['concat']
-        attr = get_json_layer_attrs(concat_node.graph.node[concat_node.id]['symbol_dict'])
+        attr = get_json_layer_attrs(concat_node.graph.nodes[concat_node.id]['symbol_dict'])
         if 'dim' in attr:
             attr['dim'] = 2
             concat_node['axis'] = 2

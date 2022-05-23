@@ -59,8 +59,8 @@ class TestElementwiseOp(unittest.TestCase):
         elementwise_node = Node(graph, 'elementwise_node')
         Round.infer(elementwise_node)
         exp_shape = np.array([13])
-        res_shape = graph.node['node_3']['shape']
-        res_value = graph.node['node_3']['value']
+        res_shape = graph.nodes['node_3']['shape']
+        res_value = graph.nodes['node_3']['value']
         exp_value = np.array([-24., -22., -2., -2., -0., 0., 1., 2., 2., 2., 4., 22., 24., ])
         for i, value in enumerate(exp_shape):
             self.assertEqual(res_shape[i], value)
@@ -74,8 +74,8 @@ class TestElementwiseOp(unittest.TestCase):
         elementwise_node = Node(graph, 'elementwise_node')
         Round.infer(elementwise_node)
         exp_shape = np.array([13])
-        res_shape = graph.node['node_3']['shape']
-        res_value = graph.node['node_3']['value']
+        res_shape = graph.nodes['node_3']['shape']
+        res_value = graph.nodes['node_3']['value']
         exp_value = np.array([-24., -23., -3., -2., -1., 1., 1., 2., 2., 3., 4., 23., 24.])
         for i, value in enumerate(exp_shape):
             self.assertEqual(res_shape[i], value)

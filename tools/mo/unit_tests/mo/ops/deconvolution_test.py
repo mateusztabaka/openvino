@@ -60,10 +60,10 @@ class TestConvolutionPartialInfer(unittest.TestCase):
                                     int64_array([1, 50, 35, 35]))
 
         Deconvolution.infer(Node(graph, 'deconv_node'))
-        res_shape = graph.node['deconv_output']['shape']
+        res_shape = graph.nodes['deconv_output']['shape']
         exp_shape = np.array([1, 50, 35, 35])
 
-        res_group = graph.node['deconv_node']['group']
+        res_group = graph.nodes['deconv_node']['group']
         exp_group = int64_array([1])
 
         self.assertTrue(np.array_equal(exp_shape, res_shape),
@@ -77,10 +77,10 @@ class TestConvolutionPartialInfer(unittest.TestCase):
                                     int64_array([1, 350, 35, 35]))
 
         Deconvolution.infer(Node(graph, 'deconv_node'))
-        res_shape = graph.node['deconv_output']['shape']
+        res_shape = graph.nodes['deconv_output']['shape']
         exp_shape = np.array([1, 350, 35, 35])
 
-        res_group = graph.node['deconv_node']['group']
+        res_group = graph.nodes['deconv_node']['group']
         exp_group = int64_array([7])
 
         self.assertTrue(np.array_equal(exp_shape, res_shape),

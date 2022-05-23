@@ -41,7 +41,7 @@ class TestFreezePlaceholderValue(unittest.TestCase):
         self.assertEqual(len(before_pattern), len(after_pattern))
         # reach new placeholder
         try:
-            new_ph_dict = graph.node[[u for u, v in graph.in_edges('2')][0]]
+            new_ph_dict = graph.nodes[[u for u, v in graph.in_edges('2')][0]]
         except Exception as e:
             self.fail("Can't get frozen placeholder. Broken edge. Additional information: {}".format(e))
         # check value
@@ -60,7 +60,7 @@ class TestFreezePlaceholderValue(unittest.TestCase):
         self.assertEqual(len(before_pattern), len(after_pattern))
         # reach new placeholder
         try:
-            new_ph_dict = graph.node[[u for u, v in graph.in_edges('2')][0]]
+            new_ph_dict = graph.nodes[[u for u, v in graph.in_edges('2')][0]]
         except Exception as e:
             self.fail("Can't get frozen placeholder. Broken edge. Additional information: {}".format(e))
         # check value
@@ -79,8 +79,8 @@ class TestFreezePlaceholderValue(unittest.TestCase):
         self.assertEqual(len(before_pattern), len(after_pattern))
         # reach new placeholder
         try:
-            new_ph_dict_1 = graph.node[[u for u, v in graph.in_edges('2')][0]]
-            new_ph_dict_2 = graph.node[[u for u, v in graph.in_edges('5')][0]]
+            new_ph_dict_1 = graph.nodes[[u for u, v in graph.in_edges('2')][0]]
+            new_ph_dict_2 = graph.nodes[[u for u, v in graph.in_edges('5')][0]]
         except Exception as e:
             self.fail("Can't get frozen placeholder. Broken edge. Additional information: {}".format(e))
         # check value

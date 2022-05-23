@@ -31,6 +31,6 @@ class TestNormalize(unittest.TestCase):
         norm_node = Node(graph, 'norm')
         copy_shape_infer(norm_node)
         exp_shape = np.array([1, 3, 227, 227])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])

@@ -32,7 +32,7 @@ class TestProposal(unittest.TestCase):
         proposal_node = Node(graph, 'proposal')
         ProposalOp.proposal_infer(proposal_node)
 
-        self.assertListEqual([1 * 2, 5], list(graph.node['proposal_out_data_1']['shape']))
+        self.assertListEqual([1 * 2, 5], list(graph.nodes['proposal_out_data_1']['shape']))
 
     def test_proposal_infer_two_outputs(self):
         graph = build_graph(nodes_attributes,
@@ -49,5 +49,5 @@ class TestProposal(unittest.TestCase):
         proposal_node = Node(graph, 'proposal')
         ProposalOp.proposal_infer(proposal_node)
 
-        self.assertListEqual(list([1 * 2, 5]), list(graph.node['proposal_out_data_1']['shape']))
-        self.assertListEqual(list([1 * 2]), list(graph.node['proposal_out_data_2']['shape']))
+        self.assertListEqual(list([1 * 2, 5]), list(graph.nodes['proposal_out_data_1']['shape']))
+        self.assertListEqual(list([1 * 2]), list(graph.nodes['proposal_out_data_2']['shape']))

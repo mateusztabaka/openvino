@@ -28,4 +28,4 @@ class Concat(FrontReplacementSubgraph):
         if match['concat'].has('axis'):
             # we delete axis parameter here (it was set by default by Concat Op) to carefully get it from the last
             # input in Concat infer function
-            del graph.node[match['concat'].id]['axis']
+            del graph.nodes[match['concat'].id]['axis']

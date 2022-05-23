@@ -55,7 +55,7 @@ class TestSparseSegmentMean(unittest.TestCase):
         ref_output_segments_shape = int64_array([40, 4, 5])
 
         # get resulted shapes
-        res_output_segments_shape = graph.node['output_segments']['shape']
+        res_output_segments_shape = graph.nodes['output_segments']['shape']
 
         self.assertTrue(np.array_equal(ref_output_segments_shape, res_output_segments_shape),
                         'Shapes do not match expected: {} and given: {}'.format(ref_output_segments_shape, res_output_segments_shape))
@@ -79,8 +79,8 @@ class TestSparseSegmentMean(unittest.TestCase):
         ref_output_segments_value = np.array([[3, 4, 5, 6], [-1, -2, -3, -4], [2, 2, 2, 2]], dtype=np.float)
 
         # get resulted shapes
-        res_output_segments_shape = graph.node['output_segments']['shape']
-        res_output_segments_value = graph.node['output_segments']['value']
+        res_output_segments_shape = graph.nodes['output_segments']['shape']
+        res_output_segments_value = graph.nodes['output_segments']['value']
 
         self.assertTrue(np.array_equal(ref_output_segments_shape, res_output_segments_shape),
                         'Shapes do not match expected: {} and given: {}'.format(ref_output_segments_shape, res_output_segments_shape))

@@ -65,9 +65,9 @@ class TestMatMul(unittest.TestCase):
         msg = "MatMul infer failed for case: A_shape={}, B_shape={}, transpose_a={}, transpose_b={} " \
               "expected_shape={}, actual_shape={}"
 
-        self.assertTrue(np.array_equal(graph.node['mat_mul_d']['shape'], shape_array(C_shape)),
+        self.assertTrue(np.array_equal(graph.nodes['mat_mul_d']['shape'], shape_array(C_shape)),
                         msg.format(A_shape, B_shape, transpose_a, transpose_b, C_shape,
-                                   graph.node['mat_mul_d']['shape']))
+                                   graph.nodes['mat_mul_d']['shape']))
 
     @generate(*[
         (None, [1024, 1000]),

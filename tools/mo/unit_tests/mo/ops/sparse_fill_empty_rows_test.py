@@ -55,9 +55,9 @@ class TestSparseFillEmptyRows(unittest.TestCase):
         ref_empty_row_indicator_shape = int64_array([4])
 
         # get resulted shapes
-        res_output_indices_shape = graph.node['output_indices']['shape']
-        res_output_values_shape = graph.node['output_values']['shape']
-        res_empty_row_indicator_shape = graph.node['empty_row_indicator']['shape']
+        res_output_indices_shape = graph.nodes['output_indices']['shape']
+        res_output_values_shape = graph.nodes['output_values']['shape']
+        res_empty_row_indicator_shape = graph.nodes['empty_row_indicator']['shape']
 
         self.assertTrue(np.array_equal(ref_output_indices_shape, res_output_indices_shape),
                         'shapes do not match expected: {} and given: {}'.format(ref_output_indices_shape, res_output_indices_shape))
@@ -88,8 +88,8 @@ class TestSparseFillEmptyRows(unittest.TestCase):
         ref_empty_row_indicator_shape = int64_array([4])
 
         # get resulted shapes
-        res_output_indices_shape = graph.node['output_indices']['shape']
-        res_empty_row_indicator_shape = graph.node['empty_row_indicator']['shape']
+        res_output_indices_shape = graph.nodes['output_indices']['shape']
+        res_empty_row_indicator_shape = graph.nodes['empty_row_indicator']['shape']
 
         self.assertTrue(np.array_equal(ref_output_indices_shape, res_output_indices_shape),
                         'shapes do not match expected: {} and given: {}'.format(ref_output_indices_shape, res_output_indices_shape))

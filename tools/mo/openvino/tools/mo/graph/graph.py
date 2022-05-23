@@ -29,14 +29,14 @@ class Node:
         super(Node, self).__setattr__('id', node)
 
     def __str__(self, max_length: int = 100):
-        node_dict = self.graph.node[self.id]
+        node_dict = self.graph.nodes[self.id]
         print_dict = {k: v if k != 'value' else shrink_str_value(v, max_symbols=max_length) for k, v in
                       node_dict.items()}
         return str(print_dict)
 
     def __setattr__(self, k, v):
         # you can assign only existing attributes
-        attrs = self.graph.node[self.node]
+        attrs = self.graph.nodes[self.node]
         if not k in attrs:
             raise AttributeError("Attribute {} missing in {} node".format(k, self.name))
         if k == 'version' and attrs.get(k, v) != v:
@@ -45,15 +45,15 @@ class Node:
         attrs[k] = v
 
     def __getattr__(self, k):
-        return self.graph.node[self.node][k]
+        return self.graph.nodes[self.node][k]
 
     def __getitem__(self, k):
-        return self.graph.node[self.node][k]
+        return self.graph.nodes[self.node][k]
 
     def __setitem__(self, k, v):
-        if k == 'version' and self.graph.node[self.node].get(k, v) != v:
+        if k == 'version' and self.graph.nodes[self.node].get(k, v) != v:
             raise AttributeError("Attribute 'version' cannot be updated in {} node".format(self.name))
-        self.graph.node[self.node][k] = v
+        self.graph.nodes[self.node][k] = v
 
     def __contains__(self, k):
         return self.has(k)
@@ -69,7 +69,7 @@ class Node:
         return hash((self.graph, self.id))
 
     def __delitem__(self, k):
-        del self.graph.node[self.node][k]
+        del self.graph.nodes[self.node][k]
 
     def add_input_port(self, idx, skip_if_exist=False, **kwargs):
         if not self.has_valid('_in_ports'):
@@ -182,13 +182,13 @@ class Node:
         return self.has_port('out', idx, control_flow) and not self.out_port(idx, control_flow).disconnected()
 
     def attrs(self):
-        return self.graph.node[self.node]
+        return self.graph.nodes[self.node]
 
     def has(self, k):
-        return k in self.graph.node[self.node]
+        return k in self.graph.nodes[self.node]
 
     def has_valid(self, k):
-        return self.has(k) and not self.graph.node[self.node][k] is None
+        return self.has(k) and not self.graph.nodes[self.node][k] is None
 
     def has_and_set(self, k):
         return self.has_valid(k) and self[k]
@@ -252,7 +252,7 @@ class Node:
         return self.out_edges(control_flow=control_flow)[key]
 
     def get_attrs(self):
-        return self.graph.node[self.node]
+        return self.graph.nodes[self.node]
 
     def get_inputs(self, edge_attr: dict = None, control_flow: bool = False):
         if edge_attr is None:
@@ -561,9 +561,6 @@ class Graph(nx.MultiDiGraph):
         self.strict_mode = True
         super().__init__(data, **attr)
 
-        if not hasattr(self, 'node'):
-            self.node = self.nodes
-
     unique_id_count = 0
     op_names_statistic = collections.Counter()
     inputs_order = []
@@ -819,7 +816,7 @@ class Graph(nx.MultiDiGraph):
         def _dump_nodes_attrs():
             string = ''
             for node_id in nodes_to_dump:
-                attrs = self.node[node_id]
+                attrs = self.nodes[node_id]
                 color = fill_color_by_type.get(attrs.get('type', ''), fill_color[attrs['kind']])
 
                 if node_id in highlight_nodes or 'highlight' in node_attrs and node_attrs['highlight']:
@@ -1119,7 +1116,7 @@ def add_opoutput(graph: Graph, node_name: str, port: int, cut: bool = True, keep
                 in_edge_attrs['fw_tensor_debug_info'].append([user_defined_name, user_defined_name])
 
     log.debug('Sink: {} for node {}'.format(opoutput_node.id, node_name))
-    log.debug(str(graph.node[opoutput_node.id]))
+    log.debug(str(graph.nodes[opoutput_node.id]))
     log.debug("Add edge from {} to {}".format(node_name, opoutput_node.id))
     return opoutput_node.id
 

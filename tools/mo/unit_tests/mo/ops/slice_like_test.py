@@ -36,8 +36,8 @@ class SliceLikeTest(unittest.TestCase):
         SliceLike.infer(slice_like)
         ref_shape = int64_array([2, 3])
         ref_value = np.array([[1, 2, 3], [5, 6, 7]])
-        res_shape = graph.node['out_data']['shape']
-        res_value = graph.node['out_data']['value']
+        res_shape = graph.nodes['out_data']['shape']
+        res_value = graph.nodes['out_data']['value']
         self.assertTrue(np.array_equal(res_shape, ref_shape))
         self.assertTrue(np.array_equal(res_value, ref_value))
 
@@ -47,8 +47,8 @@ class SliceLikeTest(unittest.TestCase):
         SliceLike.infer(slice_like)
         ref_shape = int64_array([2, 3])
         ref_value = np.array([[1, 2, 3], [5, 6, 7]])
-        res_shape = graph.node['out_data']['shape']
-        res_value = graph.node['out_data']['value']
+        res_shape = graph.nodes['out_data']['shape']
+        res_value = graph.nodes['out_data']['value']
         self.assertTrue(np.array_equal(res_shape, ref_shape))
         self.assertTrue(np.array_equal(res_value, ref_value))
 
@@ -58,8 +58,8 @@ class SliceLikeTest(unittest.TestCase):
         SliceLike.infer(slice_like)
         ref_shape = int64_array([2, 4])
         ref_value = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
-        res_shape = graph.node['out_data']['shape']
-        res_value = graph.node['out_data']['value']
+        res_shape = graph.nodes['out_data']['shape']
+        res_value = graph.nodes['out_data']['value']
         self.assertTrue(np.array_equal(res_shape, ref_shape))
         self.assertTrue(np.array_equal(res_value, ref_value))
 
@@ -69,7 +69,7 @@ class SliceLikeTest(unittest.TestCase):
         SliceLike.infer(slice_like)
         ref_shape = int64_array([3, 3])
         ref_value = np.array([[1, 2, 3], [5, 6, 7], [9, 10, 11]])
-        res_shape = graph.node['out_data']['shape']
-        res_value = graph.node['out_data']['value']
+        res_shape = graph.nodes['out_data']['shape']
+        res_value = graph.nodes['out_data']['value']
         self.assertTrue(np.array_equal(res_shape, ref_shape))
         self.assertTrue(np.array_equal(res_value, ref_value))

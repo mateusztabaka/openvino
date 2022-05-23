@@ -42,7 +42,7 @@ def build_net(graph: Graph):
 
     reshape_flag = False
     for i in inputs_node_name:
-        new_input_shape = graph.node[i]['shape'].astype(int)
+        new_input_shape = graph.nodes[i]['shape'].astype(int)
         top_node = get_node_top(graph, i)
         caffe_shape = list(net.blobs[top_node].shape)
         if not np.all(caffe_shape == new_input_shape):

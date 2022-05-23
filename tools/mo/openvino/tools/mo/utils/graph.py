@@ -136,7 +136,7 @@ def sub_graph_between_nodes(graph: Graph, start_nodes: list, end_nodes: list, de
                 if dst_node_name not in visited and (include_control_flow or not attrs.get('control_flow_edge', False)):
                     d.append(dst_node_name)
                     visited.add(dst_node_name)
-                    graph.node[dst_node_name]['prev'] = cur_node_id
+                    graph.nodes[dst_node_name]['prev'] = cur_node_id
 
         for src_node_name, _, attrs in graph.in_edges(cur_node_id, data=True):
             # add input nodes for the non-start_nodes
@@ -146,7 +146,7 @@ def sub_graph_between_nodes(graph: Graph, start_nodes: list, end_nodes: list, de
                     extra_start_nodes.append(cur_node_id)
                 else:
                     d.append(src_node_name)
-                    graph.node[src_node_name]['prev'] = cur_node_id
+                    graph.nodes[src_node_name]['prev'] = cur_node_id
                     visited.add(src_node_name)
 
     # use forward dfs to check that all end nodes are reachable from at least one of input nodes
@@ -160,12 +160,12 @@ def sub_graph_between_nodes(graph: Graph, start_nodes: list, end_nodes: list, de
 
     for node_id in sub_graph_nodes:
         # sub-graph should not contain Placeholder nodes
-        if graph.node[node_id].get('op', '') == 'Parameter':
+        if graph.nodes[node_id].get('op', '') == 'Parameter':
             path = list()
             cur_node = node_id
-            while cur_node and 'prev' in graph.node[cur_node]:
+            while cur_node and 'prev' in graph.nodes[cur_node]:
                 path.append(str(cur_node))
-                cur_node = graph.node[cur_node]['prev']
+                cur_node = graph.nodes[cur_node]['prev']
             log.debug("The path from input node is the following: {}".format('\n'.join(path)))
             raise Error('The matched sub-graph contains network input node "{}". '.format(node_id) +
                         refer_to_faq_msg(75))
@@ -205,16 +205,16 @@ def invert_sub_graph_between_nodes(graph: Graph, start_nodes: list, end_nodes: l
                     if src_node_name not in visited:
                         d.append(src_node_name)
                         visited.add(src_node_name)
-                        graph.node[cur_node_name]['prev'] = src_node_name
+                        graph.nodes[cur_node_name]['prev'] = src_node_name
 
     for node_name in sub_graph_nodes:
         # sub-graph should not contain Input nodes
-        if graph.node[node_name].get('op', '') == 'Parameter':
+        if graph.nodes[node_name].get('op', '') == 'Parameter':
             path = list()
             cur_node = node_name
-            while cur_node and 'prev' in graph.node[cur_node]:
+            while cur_node and 'prev' in graph.nodes[cur_node]:
                 path.append(str(cur_node))
-                cur_node = graph.node[cur_node]['prev']
+                cur_node = graph.nodes[cur_node]['prev']
             log.debug("The path from input node is the following: {}".format('\n'.join(path)))
             raise Error('The matched sub-graph contains network input node "{}". '.format(node_name) +
                         refer_to_faq_msg(75))

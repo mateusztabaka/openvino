@@ -31,4 +31,4 @@ class TestConcatEdgesReshuffler(unittest.TestCase):
                 self.assertEqual(u, 'input_3')
             if attrs['in'] == 3:
                 self.assertEqual(u, 'axis')
-        self.assertTrue('axis' not in graph.node['concat'])
+        self.assertTrue('axis' not in graph.nodes['concat'])

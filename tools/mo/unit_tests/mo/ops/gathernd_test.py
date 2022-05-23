@@ -149,7 +149,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = int64_array([3])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -163,7 +163,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = int64_array([3, 30])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -178,7 +178,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = int64_array([400, 3, 5, 9])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -193,7 +193,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = int64_array([4096, 1])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -208,7 +208,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = shape_array([dynamic_dimension_value, 3, 5, 9])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(strict_compare_tensors(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -223,7 +223,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = shape_array([dynamic_dimension_value, 3, 5, 9])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(strict_compare_tensors(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -238,7 +238,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = shape_array([dynamic_dimension_value, 3, 5, 9])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(strict_compare_tensors(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -249,7 +249,7 @@ class TestGatherND_5(unittest.TestCase):
         GatherND.infer(gathernd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output4, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output4, res_output_value))
@@ -260,7 +260,7 @@ class TestGatherND_5(unittest.TestCase):
         GatherND.infer(gathernd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output5, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output5, res_output_value))
@@ -272,7 +272,7 @@ class TestGatherND_5(unittest.TestCase):
         GatherND.infer(gathernd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output6, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output6, res_output_value))
@@ -284,7 +284,7 @@ class TestGatherND_5(unittest.TestCase):
         GatherND.infer(gathernd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         output = output7.reshape([6, 1])
         self.assertTrue(np.array_equal(output, res_output_value),
@@ -297,7 +297,7 @@ class TestGatherND_5(unittest.TestCase):
         GatherND.infer(gathernd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output8, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output8, res_output_value))
@@ -309,7 +309,7 @@ class TestGatherND_5(unittest.TestCase):
         GatherND.infer(gathernd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         self.assertTrue(np.array_equal(output8, res_output_value),
                         'values do not match expected: {} and given: {}'.format(output8, res_output_value))
@@ -321,7 +321,7 @@ class TestGatherND_5(unittest.TestCase):
         GatherND.infer(gathernd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         output = output8.reshape([6, 3])
         self.assertTrue(np.array_equal(output, res_output_value),
@@ -356,7 +356,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = int64_array([10, 40, 3, 5, 9])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -372,7 +372,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = int64_array([1, 64, 64, 1])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(np.array_equal(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -388,7 +388,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = shape_array([dynamic_dimension_value, 40, 3, 5, 9])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(strict_compare_tensors(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -404,7 +404,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = shape_array([40, dynamic_dimension_value, 3, 5, 9])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(strict_compare_tensors(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -420,7 +420,7 @@ class TestGatherND_5(unittest.TestCase):
         ref_output_shape = shape_array([40, 40, 3, 5, 9])
 
         # get the result
-        res_output_shape = graph.node['output']['shape']
+        res_output_shape = graph.nodes['output']['shape']
 
         self.assertTrue(strict_compare_tensors(ref_output_shape, res_output_shape),
                         'values do not match expected: {} and given: {}'.format(ref_output_shape, res_output_shape))
@@ -433,7 +433,7 @@ class TestGatherND_5(unittest.TestCase):
         GatherND.infer(gathernd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         output = output7.reshape([2, 3, 1])
 
@@ -448,7 +448,7 @@ class TestGatherND_5(unittest.TestCase):
         GatherND.infer(gathernd_node)
 
         # get the result
-        res_output_value = graph.node['output']['value']
+        res_output_value = graph.nodes['output']['value']
 
         output = output8.reshape([2, 3, 3])
 

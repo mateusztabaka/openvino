@@ -33,7 +33,7 @@ class TestRegionYOLOCaffe(unittest.TestCase):
         reorg_node = Node(graph, 'region')
         RegionYoloOp.regionyolo_infer(reorg_node)
         exp_shape = np.array([1, 3 * 227 * 227])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -51,7 +51,7 @@ class TestRegionYOLOCaffe(unittest.TestCase):
         reorg_node = Node(graph, 'region')
         RegionYoloOp.regionyolo_infer(reorg_node)
         exp_shape = np.array([1 * 3, 227, 227])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -69,7 +69,7 @@ class TestRegionYOLOCaffe(unittest.TestCase):
         reorg_node = Node(graph, 'region')
         RegionYoloOp.regionyolo_infer(reorg_node)
         exp_shape = shape_array([dynamic_dimension_value, 227, 227])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         self.assertTrue(strict_compare_tensors(exp_shape, res_shape))
 
     def test_region_infer_flatten_again(self):
@@ -86,7 +86,7 @@ class TestRegionYOLOCaffe(unittest.TestCase):
         reorg_node = Node(graph, 'region')
         RegionYoloOp.regionyolo_infer(reorg_node)
         exp_shape = np.array([1 * 3 * 227, 227])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -106,7 +106,7 @@ class TestRegionYOLOCaffe(unittest.TestCase):
         reorg_node = Node(graph, 'region')
         RegionYoloOp.regionyolo_infer(reorg_node)
         exp_shape = np.array([1, (80 + 4 + 1) * 3, 227, 227])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -126,7 +126,7 @@ class TestRegionYOLOTF(unittest.TestCase):
         reorg_node = Node(graph, 'region')
         RegionYoloOp.regionyolo_infer(reorg_node)
         exp_shape = np.array([1, 3 * 227 * 227])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])
 
@@ -146,6 +146,6 @@ class TestRegionYOLOTF(unittest.TestCase):
         reorg_node = Node(graph, 'region')
         RegionYoloOp.regionyolo_infer(reorg_node)
         exp_shape = np.array([1, 227, 227, (80 + 4 + 1) * 3])
-        res_shape = graph.node['node_3']['shape']
+        res_shape = graph.nodes['node_3']['shape']
         for i in range(0, len(exp_shape)):
             self.assertEqual(exp_shape[i], res_shape[i])

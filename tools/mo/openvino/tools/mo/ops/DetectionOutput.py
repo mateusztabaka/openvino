@@ -104,7 +104,7 @@ class DetectionOutput(Op):
         node.out_port(0).data.set_shape([1, 1, conf_shape[0] * node.keep_top_k, 7])
 
         # the line below is needed for the TF framework so the MO will not change the layout
-        node.graph.node[node.out_node(0).id]['nchw_layout'] = True
+        node.graph.nodes[node.out_node(0).id]['nchw_layout'] = True
 
     @staticmethod
     def reverse_infer(node):

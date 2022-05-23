@@ -70,7 +70,7 @@ class TestFakeQuantizeOp(unittest.TestCase):
         quantize_node = Node(graph, 'quantize')
         FakeQuantize.infer(quantize_node)
         quantize_shape = np.array([1, 3, 10, 20])
-        res_shape = graph.node['node_out_1']['shape']
+        res_shape = graph.nodes['node_out_1']['shape']
         for i in range(0, len(quantize_shape)):
             self.assertEqual(quantize_shape[i], res_shape[i])
 
@@ -115,8 +115,8 @@ class TestFakeQuantizeOp(unittest.TestCase):
         FakeQuantize.infer(exp_node)
         quantize_shape = np.array([4])
         quantize_value = np.array([1, 1, 0, 1], dtype=np.float32)
-        res_shape = graph.node['node_out_1']['shape']
-        res_value = graph.node['node_out_1']['value']
+        res_shape = graph.nodes['node_out_1']['shape']
+        res_value = graph.nodes['node_out_1']['value']
         for i in range(0, len(quantize_shape)):
             self.assertEqual(quantize_shape[i], res_shape[i])
         for i in range(0, len(quantize_value)):

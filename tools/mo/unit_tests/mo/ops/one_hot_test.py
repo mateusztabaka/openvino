@@ -56,5 +56,5 @@ class TestOneHotInfer(unittest.TestCase):
         graph = build_graph(generate_nodes(int64_array(input_value), axis), edges)
         onehot_node = Node(graph, 'one_hot')
         OneHot.infer(onehot_node)
-        res_value = graph.node['one_hot_d']['value']
+        res_value = graph.nodes['one_hot_d']['value']
         self.assertTrue(np.array_equal(exp_value, int64_array(res_value)))

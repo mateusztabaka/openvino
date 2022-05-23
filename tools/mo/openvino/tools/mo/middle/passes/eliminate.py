@@ -37,12 +37,12 @@ def reverse_dfs(graph, node_name: str, update_func: callable, visited: set = Non
 
 def mark_input_nodes(graph, node_name: str, key: str, value):
     for input, _ in graph.in_edges(node_name):
-        graph.node[input][key] = value
+        graph.nodes[input][key] = value
 
 
 def mark_output_nodes(graph, node_name: str, key: str, value):
     for output, _ in graph.out_edges(node_name):
-        graph.node[output][key] = value
+        graph.nodes[output][key] = value
 
 
 def mark_output_reachable_nodes(graph):
@@ -82,12 +82,12 @@ def mark_undead_nodes(graph, undead_types: list):
     nx.set_node_attributes(G=graph, name='is_undead', values={n: True for n in undead_nodes})
     # propagate 'undead' attribute to children nodes of undead nodes if the node produces constant value
     for node_name in bfs_search(graph, undead_nodes):
-        if graph.node[node_name]['is_undead']:
+        if graph.nodes[node_name]['is_undead']:
             for _, dst_node_name in graph.out_edges(node_name):
-                node_attrs = graph.node[dst_node_name]
+                node_attrs = graph.nodes[dst_node_name]
                 if 'kind' in node_attrs and (
                         node_attrs['kind'] == 'data' and node_attrs['value'] is not None or node_attrs['kind'] == 'op'):
-                    graph.node[dst_node_name]['is_undead'] = True
+                    graph.nodes[dst_node_name]['is_undead'] = True
 
     # mark input nodes as undead
     inputs = graph.get_nodes_with_attributes(is_input=True)
@@ -105,12 +105,12 @@ def mark_const_producer_nodes(graph):
     for node in graph.pseudo_topological_sort():
         for input, output, attrs in graph.in_edges(node.id, data=True):
             if 'control_flow_edge' in attrs and attrs['control_flow_edge']:
-                graph.node[input]['is_const_producer'] = False
-                graph.node[output]['is_const_producer'] = False
+                graph.nodes[input]['is_const_producer'] = False
+                graph.nodes[output]['is_const_producer'] = False
 
         if not node.has('value') or node.value is None or not is_fully_defined(node.value):
             for input, _ in graph.in_edges(node.id):
-                graph.node[input]['is_const_producer'] = False
+                graph.nodes[input]['is_const_producer'] = False
 
 
 def eliminate_dead_nodes(graph):
@@ -193,7 +193,7 @@ def graph_clean_up_onnx(graph):
 # TODO: unit tests
 def merge_data_nodes(graph, survived, removed):
     if survived.has_and_set('op') and survived.op == 'Result':
-        graph.node[removed.id].update({'op': 'Result'})
+        graph.nodes[removed.id].update({'op': 'Result'})
 
     for u, v, d in list(graph.in_edges(removed.id, data=True)):
         graph.add_edges_from([(u, survived.id, d)])
@@ -203,7 +203,7 @@ def merge_data_nodes(graph, survived, removed):
         graph.add_edges_from([(survived.id, v, d)])
         graph.remove_edge(u, v)
 
-    for attr in graph.node[removed.id]:
+    for attr in graph.nodes[removed.id]:
         if not attr in ['name']:
             # We need to save debug info from removed data node
             if attr == 'fw_tensor_debug_info':
