@@ -152,7 +152,7 @@ def add_initializers_and_inputs_to_graph(graph: Graph, graph_pb, data_nodes_map:
         if graph.has_node(name):
             raise Error('Name {} of input node already exists, input names are duplicated.', name)
         elif initializers.has_node(name):
-            graph.add_node(name, kind='op', op='Const', pb=inp, pb_init=initializers.node[name]['pb'])
+            graph.add_node(name, kind='op', op='Const', pb=inp, pb_init=initializers.nodes[name]['pb'])
         else:
             graph.add_node(name, kind='op', op='Parameter', pb=inp)
             parameters.append(Node(graph, name))
@@ -164,7 +164,7 @@ def add_initializers_and_inputs_to_graph(graph: Graph, graph_pb, data_nodes_map:
     for initializer in initializers.nodes():
         initializer_id = initializer
         if not graph.has_node(initializer_id):
-            graph.add_node(initializer_id, kind='op', op='Const', pb=initializers.node[initializer]['pb'],
-                           pb_init=initializers.node[initializer]['pb'])
+            graph.add_node(initializer_id, kind='op', op='Const', pb=initializers.nodes[initializer]['pb'],
+                           pb_init=initializers.nodes[initializer]['pb'])
             data_nodes_map[initializer] = (initializer_id, 0)
     return parameters
