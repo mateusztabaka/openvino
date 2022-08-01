@@ -60,7 +60,7 @@ class TestROIAlignOps(unittest.TestCase):
         graph.graph["layout"] = "NCHW"
         node = Node(graph, "node")
         ROIAlign.infer(node)
-        self.assertListEqual(list([1000, 256, 7, 7]), graph.node['node_data']['shape'].data.tolist())
+        self.assertListEqual(list([1000, 256, 7, 7]), graph.nodes['node_data']['shape'].data.tolist())
 
     def test_roialignv2(self):
         graph = build_graph(
@@ -86,7 +86,7 @@ class TestROIAlignOps(unittest.TestCase):
         node = Node(graph, "node")
 
         ROIAlign.infer(node)
-        self.assertListEqual(list([300, 256, 5, 6]), graph.node['node_data']['shape'].data.tolist())
+        self.assertListEqual(list([300, 256, 5, 6]), graph.nodes['node_data']['shape'].data.tolist())
 
     def test_roialignv3(self):
         graph = build_graph(
@@ -112,7 +112,7 @@ class TestROIAlignOps(unittest.TestCase):
         node = Node(graph, "node")
 
         ROIAlign.infer(node)
-        self.assertListEqual(list([7, 3, 2, 2]), graph.node['node_data']['shape'].data.tolist())
+        self.assertListEqual(list([7, 3, 2, 2]), graph.nodes['node_data']['shape'].data.tolist())
 
 
     def test_roialign_wrong_aligned_mode(self):

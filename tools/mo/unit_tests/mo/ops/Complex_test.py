@@ -52,5 +52,5 @@ class TestComplexOp(unittest.TestCase):
 
         msg = "Complex operation infer failed for case: expected_shape={}, actual_shape={}"
 
-        self.assertTrue(np.array_equal(graph.node['complex_data']['shape'], int64_array(output_shape)),
-                        msg.format(output_shape, graph.node['complex_data']['shape']))
+        self.assertTrue(np.array_equal(graph.nodes['complex_data']['shape'], int64_array(output_shape)),
+                        msg.format(output_shape, graph.nodes['complex_data']['shape']))

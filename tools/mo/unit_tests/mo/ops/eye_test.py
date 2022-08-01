@@ -73,5 +73,5 @@ class TestComplexOp(unittest.TestCase):
 
         msg = "Eye operation infer failed for case: expected_shape={}, actual_shape={}"
 
-        self.assertTrue(np.array_equal(graph.node['eye_op_data']['shape'], output_shape),
-                        msg.format(output_shape, graph.node['eye_op_data']['shape']))
+        self.assertTrue(np.array_equal(graph.nodes['eye_op_data']['shape'], output_shape),
+                        msg.format(output_shape, graph.nodes['eye_op_data']['shape']))
