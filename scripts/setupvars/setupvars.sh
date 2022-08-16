@@ -45,22 +45,30 @@ if [ -e "$INSTALLDIR/runtime" ]; then
     if [ -e "$HDDL_UNITE_DIR" ]; then
         export LD_LIBRARY_PATH=$HDDL_UNITE_DIR/lib:$HDDL_UNITE_DIR/thirdparty/XLink/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
     fi
-fi
 
-if [ -e "$INSTALLDIR/runtime/3rdparty/tbb" ]; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        export DYLD_LIBRARY_PATH=$INSTALLDIR/runtime/3rdparty/tbb/lib:${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
-    fi
-    export LD_LIBRARY_PATH=$INSTALLDIR/runtime/3rdparty/tbb/lib:${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH}
+    if [ -e "$INSTALLDIR/runtime/3rdparty/tbb" ]; then
+        tbb_lib_path=$INSTALLDIR/runtime/3rdparty/tbb/lib
+        if [ -d $tbb_lib_path/$system_type ]; then
+            lib_path=$(find $tbb_lib_path/$system_type -name libtbb.so)
+            if [ -n $lib_path ]; then
+                tbb_lib_path=$(dirname $lib_path)
+            fi
+        fi
 
-    if [ -e "$INSTALLDIR/runtime/3rdparty/tbb/lib/cmake/TBB" ]; then
-        export TBB_DIR=$INSTALLDIR/runtime/3rdparty/tbb/lib/cmake/TBB
-    elif [ -e "$INSTALLDIR/runtime/3rdparty/tbb/lib/cmake/tbb" ]; then
-        export TBB_DIR=$INSTALLDIR/runtime/3rdparty/tbb/lib/cmake/tbb
-    elif [ -e "$INSTALLDIR/runtime/3rdparty/tbb/lib64/cmake/TBB" ]; then
-        export TBB_DIR=$INSTALLDIR/runtime/3rdparty/tbb/lib64/cmake/TBB
-    elif [ -e "$INSTALLDIR/runtime/3rdparty/tbb/cmake" ]; then
-        export TBB_DIR=$INSTALLDIR/runtime/3rdparty/tbb/cmake
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            export DYLD_LIBRARY_PATH=$tbb_lib_path:${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}
+        fi
+        export LD_LIBRARY_PATH=$tbb_lib_path:${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH}
+
+        if [ -e "$INSTALLDIR/runtime/3rdparty/tbb/lib/cmake/TBB" ]; then
+            export TBB_DIR=$INSTALLDIR/runtime/3rdparty/tbb/lib/cmake/TBB
+        elif [ -e "$INSTALLDIR/runtime/3rdparty/tbb/lib/cmake/tbb" ]; then
+            export TBB_DIR=$INSTALLDIR/runtime/3rdparty/tbb/lib/cmake/tbb
+        elif [ -e "$INSTALLDIR/runtime/3rdparty/tbb/lib64/cmake/TBB" ]; then
+            export TBB_DIR=$INSTALLDIR/runtime/3rdparty/tbb/lib64/cmake/TBB
+        elif [ -e "$INSTALLDIR/runtime/3rdparty/tbb/cmake" ]; then
+            export TBB_DIR=$INSTALLDIR/runtime/3rdparty/tbb/cmake
+        fi
     fi
 fi
 
