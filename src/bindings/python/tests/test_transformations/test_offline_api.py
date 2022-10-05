@@ -102,6 +102,16 @@ def test_moc_transformations():
     assert len(model.get_ops()) == 3
 
 
+def test_smart_reshape_transformations():
+    function = get_test_model()
+
+    apply_smart_reshape_transformation(function)
+
+    print(function.get_ops())
+    assert function is not None
+    assert len(function.get_ops()) == 3
+
+
 def test_pot_transformations():
     model = get_test_model()
 
