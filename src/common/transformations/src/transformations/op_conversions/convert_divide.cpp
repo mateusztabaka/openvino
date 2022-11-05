@@ -10,10 +10,11 @@
 #include <ngraph/pattern/op/wrap_type.hpp>
 #include <ngraph/rt_info.hpp>
 #include <ngraph/validation_util.hpp>
+#include "openvino/op/util/nonconvertible_divide.hpp"
+
 #include <vector>
 
 #include "itt.hpp"
-#include "transformations/rt_info/nonconvertible_divide.hpp"
 #include "transformations/utils/utils.hpp"
 
 namespace {

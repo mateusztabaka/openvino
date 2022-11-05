@@ -99,6 +99,23 @@ def create_input_scaleshift_pattern():
 
 
 @registry_ignore_patterns('inputs')
+def create_input_shiftscale_with_sub_pattern():
+    pattern = PatternBuilder()
+    pattern.append_single_op('Parameter', 'input')
+    pattern.insert_shiftscale('Subtract')
+    return pattern.set_name('input_shift_scale_with_sub').pattern
+
+
+@registry_ignore_patterns('inputs')
+def create_input_shiftscale_with_add_pattern():
+    pattern = PatternBuilder()
+    pattern.append_single_op('Parameter', 'input')
+    pattern.insert_shiftscale('Add')
+    return pattern.set_name('input_shift_scale').pattern
+    return pattern.set_name('input_shift_scale_with_add').pattern
+
+
+@registry_ignore_patterns('inputs')
 def create_input_transpose_scaleshift_pattern():
     pattern = PatternBuilder()
     pattern.append_single_op('Parameter', 'input')

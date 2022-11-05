@@ -83,6 +83,10 @@ class PatternBuilder:
         self.insert_multiply_const(input_node, output_node, 'scaleshift_multiply', remove_orig_edge)
         return self.insert_add_const(self._tail(), output_node, 'scaleshift_add')
 
+    def insert_shiftscale(self, shift_type, input_node=None, output_node=None, remove_orig_edge=True):
+        self.insert_op_const(input_node, output_node, shift_type, 'shift', remove_orig_edge)
+        return self.insert_op_const(self._tail(), output_node, 'Divide', 'scale', remove_orig_edge)
+
     def insert_split(self, input_node=None, output_node=None, op_name=None, remove_orig_edge=True):
         return self.insert_op_const(input_node, output_node, 'Split', op_name, remove_orig_edge)
 

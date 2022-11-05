@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "transformations/rt_info/nonconvertible_divide.hpp"
+#include "openvino/op/util/nonconvertible_divide.hpp"
 
 void ov::disable_divide_conversion(const std::shared_ptr<Node>& node) {
     auto& rt_info = node->get_rt_info();

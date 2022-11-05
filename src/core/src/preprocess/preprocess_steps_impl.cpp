@@ -10,6 +10,8 @@
 #include "openvino/core/shape.hpp"
 #include "openvino/op/nv12_to_bgr.hpp"
 #include "openvino/op/nv12_to_rgb.hpp"
+#include "openvino/op/util/nonconvertible_divide.hpp"
+#include "openvino/op/util/precision_sensitive_attribute.hpp"
 #include "openvino/opsets/opset8.hpp"
 #include "openvino/util/common_util.hpp"
 #include "transformations/rt_info/preprocessing_attribute.hpp"
@@ -76,6 +78,8 @@ void PreStepsList::add_scale_impl(const std::vector<float>& values) {
             auto constant = op::v0::Constant::create(element_type, shape, values);
 
             auto new_op = std::make_shared<op::v1::Divide>(nodes[0], constant);
+            ov::mark_as_precision_sensitive(new_op->input(1));
+            ov::disable_divide_conversion(new_op);
             set_is_preprocessing_node(new_op);
             return std::make_tuple(std::vector<Output<Node>>{new_op}, false);
         },
