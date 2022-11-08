@@ -846,6 +846,10 @@ Engine::LoadExeNetworkImpl(const InferenceEngine::CNNNetwork &network, const std
 
     ConvertToCPUSpecificOpset(nGraphFunc);
 
+    std::cout << "CPU NODES\n";
+    for (auto n : nGraphFunc->get_ordered_ops())
+        std::cout << *n << std::endl;
+
     // update the props after the perf mode translated to configs
     // TODO: Clarify the behavior of SetConfig method. Skip eng_config or not?
     Config conf = engConfig;

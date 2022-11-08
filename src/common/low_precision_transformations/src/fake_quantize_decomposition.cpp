@@ -293,6 +293,7 @@ bool FakeQuantizeDecompositionTransformation::transform(TransformationContext& c
     }
 
     const ngraph::element::Type outputPrecision = layer->get_output_element_type(0);
+    std::cout << outputPrecision << " " << *layer << std::endl;
     if (DataPrecision::isSupported(outputPrecision)) {
         const FakeQuantizeDequantization dequantization = NetworkHelper::getDequantizationBelow(layer);
         if (dequantization.empty()) {

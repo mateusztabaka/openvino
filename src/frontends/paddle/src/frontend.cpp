@@ -247,7 +247,7 @@ std::map<int32_t, std::shared_ptr<ov::Model>> FrontEnd::convert_each_node_recurs
         parameter_nodes.push_back(param);
     }
 
-    const auto& op_places = model->get_op_places(block_idx);
+    const auto& op_places = model->get_op_places();
     for (const auto& op_place : op_places) {
         const auto& op_desc = op_place->get_desc();
         if (op_desc.type() == "feed" || op_desc.type() == "fetch") {

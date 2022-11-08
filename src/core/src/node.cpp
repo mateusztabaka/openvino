@@ -380,11 +380,12 @@ ostream& operator<<(ostream& out, const Node* node) {
 }  // namespace ov
 
 std::ostream& ov::Node::write_description(std::ostream& out, uint32_t depth) const {
+    std::string name = get_friendly_name();
     if (depth == 0) {
-        out << get_friendly_name();
+        out << name;
     } else {
         OPENVINO_SUPPRESS_DEPRECATED_START
-        out << "v" << get_type_info().version << "::" << get_type_info().name << " " << get_friendly_name() << " (";
+        out << "v" << get_type_info().version << "::" << get_type_info().name << " " << name << " (";
         OPENVINO_SUPPRESS_DEPRECATED_END
         string sep = "";
         for (const auto& arg : input_values()) {
@@ -398,6 +399,11 @@ std::ostream& ov::Node::write_description(std::ostream& out, uint32_t depth) con
             sep = ", ";
         }
         out << ")";
+        auto constant = dynamic_cast<const op::v0::Constant*>(this);
+        if (constant && shape_size(constant->get_shape()) < 32) {
+            for (auto x : constant->cast_vector<float>())
+                out << std::endl << x;
+        }
     }
     return out;
 }

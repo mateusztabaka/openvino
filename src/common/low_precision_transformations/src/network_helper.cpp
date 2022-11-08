@@ -1069,6 +1069,8 @@ std::tuple<std::shared_ptr<Node>, std::shared_ptr<Node>> NetworkHelper::decompos
         static_cast<int>(outChannelsShapeIndex));
     NetworkHelper::copyInfo(fq, newFQ);
 
+    std::cout << __func__ << " " << *newFQ << std::endl;
+
     std::shared_ptr<ngraph::Node> convert2;
     if (updatePrecision) {
         std::shared_ptr<Node> convert;

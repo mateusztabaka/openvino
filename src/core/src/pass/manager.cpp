@@ -110,6 +110,12 @@ void ov::pass::Manager::run_passes(shared_ptr<ov::Model> func) {
             }
         }
 
+        if (getenv("DUMP_PASSES")) {
+            std::cout << "=== " << pass->get_name() << " ===\n";
+            for (const auto& n : func->get_ordered_ops())
+                std::cout << *n << std::endl;
+        }
+
         if (m_visualize) {
             // visualizations and serializations will be named after the outermost function
             const size_t num_digits_in_pass_index = 3;
