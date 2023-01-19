@@ -172,4 +172,11 @@ OPENVINO_API std::vector<PartialShape> get_node_input_partial_shapes(const ov::N
 ///
 /// \return True if rank compatible to any from ranks, otherwise false.
 OPENVINO_API bool is_rank_compatible_any_of(const ov::Rank& rank, const std::vector<ov::Rank>& ranks);
+
+/// \brief Constant folds a subgraph to a constant node
+///
+/// \param subgraph sink
+///
+/// \return Constant node or nullptr if unable to constantfold the subgraph
+std::shared_ptr<op::v0::Constant> constantfold_subgraph(const Output<Node>& subgraph_sink);
 }  // namespace ov
