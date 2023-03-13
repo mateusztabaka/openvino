@@ -26,6 +26,7 @@
 #include "ngraph/type/element_type_traits.hpp"
 #include "ngraph/util.hpp"
 #include "openvino/op/ops.hpp"
+#include "openvino/pass/constant_folding.hpp"
 #include "sequnce_generator.hpp"
 
 NGRAPH_SUPPRESS_DEPRECATED_START
@@ -1346,21 +1347,32 @@ std::shared_ptr<op::v0::Constant> ov::constantfold_subgraph(const Output<Node>& 
         return c;
 
     const auto node = subgraph_sink.get_node();
+    if (pass::constant_folding_is_disabled(node))
+        return nullptr;
+
     const auto num_inputs = node->get_input_size();
     if (num_inputs == 0)
         return nullptr;
 
-    OutputVector inputs;
+    TensorVector inputs;
+    NodeVector new_constants;
     inputs.reserve(num_inputs);
+    new_constants.reserve(num_inputs);
     for (size_t i = 0; i < num_inputs; i++) {
         auto constant = constantfold_subgraph(node->input_value(i));
         if (constant == nullptr)
             return nullptr;
-        inputs.push_back(constant);
+        new_constants.push_back(constant);
+        inputs.emplace_back(constant->get_element_type(), constant->get_shape(), const_cast<void*>(constant->get_data_ptr()));
     }
 
-    OutputVector outputs(node->get_output_size());
-    if (!node->constant_fold(outputs, inputs))
+    TensorVector outputs;
+    size_t num_outputs = node->get_output_size();
+    outputs.reserve(num_outputs);
+    for (size_t i = 0; i < num_outputs; i++) {
+        outputs.emplace_back(node->get_output_element_type(i), node->get_output_shape(i));
+    }
+    if (!node->evaluate(outputs, inputs))
         return nullptr;
-    return ov::as_type_ptr<op::v0::Constant>(outputs[subgraph_sink.get_index()].get_node_shared_ptr());
+    return std::make_shared<op::v0::Constant>(outputs[subgraph_sink.get_index()]);
 }
