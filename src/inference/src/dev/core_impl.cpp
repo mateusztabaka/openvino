@@ -1095,9 +1095,10 @@ void ov::CoreImpl::add_mutex(const std::string& dev_name) {
 static void apply_moc_transformations(const std::shared_ptr<ov::Model>& model) {
     ov::pass::Manager manager;
     manager.register_pass<ov::pass::MOCTransformations>(false);
-    manager.register_pass<ngraph::pass::CompressQuantizeWeights>();
-    manager.register_pass<ngraph::pass::ZeroPointOptimizer>();
-    manager.register_pass<ov::pass::EnableShapeOfConstantFolding>();
+    auto gr = manager.register_pass<ov::pass::GraphRewrite>();
+    gr->add_matcher<ngraph::pass::CompressQuantizeWeights>();
+    gr->add_matcher<ngraph::pass::ZeroPointOptimizer>();
+    gr->add_matcher<ov::pass::EnableShapeOfConstantFolding>();
     manager.run_passes(model);
 }
 
