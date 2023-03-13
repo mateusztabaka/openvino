@@ -146,7 +146,7 @@ CNNNetworkNGraphImpl::CNNNetworkNGraphImpl(const std::shared_ptr<Function>& nGra
     : _ngraph_function(nGraph),
       _ie_extensions(exts),
       _new_api(newAPI) {
-    {
+    if (!_new_api) {
         ov::pass::Manager m;
         using namespace ov::pass;
         REGISTER_PASS(m, FixRtInfo)
