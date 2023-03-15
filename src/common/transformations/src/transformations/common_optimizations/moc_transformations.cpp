@@ -84,6 +84,7 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
     RUN_ON_FUNCTION_SCOPE(MOCTransformations);
     // To avoid issues with dynamism we make nGraph Function dynamic and after we apply all
     // transformations we restore original shapes to the nGraph Function back
+    /*
     std::unordered_map<ngraph::op::Parameter*, PartialShape> input_shapes;
     if (!m_use_shapes) {
         for (auto&& param : f->get_parameters()) {
@@ -92,6 +93,7 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
         }
         f->validate_nodes_and_infer_types();
     }
+    */
 
     ov::pass::Manager manager(get_pass_config());
     manager.set_per_pass_validation(false);
@@ -239,6 +241,7 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
 
     manager.run_passes(f);
 
+    /*
     if (!m_use_shapes) {
         // Restore original shapes to the nGraph Function
         for (auto&& param : f->get_parameters()) {
@@ -246,6 +249,7 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
         }
         f->validate_nodes_and_infer_types();
     }
+    */
 
     return false;
 }
