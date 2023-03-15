@@ -35,6 +35,50 @@ static bool has_dequantization_subgraph(const std::shared_ptr<ngraph::Node>& fir
     return multiply != convert_or_subtract_users.end();
 }
 
+/*
+static bool optimize_zero_point(const std::shared_ptr<ov::opset8::Constant>& weights,
+                                const std::shared_ptr<ov::Node>& convert,
+                                const std::shared_ptr<ov::Node>& sub,
+                                const std::shared_ptr<ov::opset8::Constant>& zero_point) {
+    const auto zero_point_value = zero_point->cast_vector<float>();
+    std::vector<int> int_zero_point;
+    int_zero_point.reserve(zero_point_value.size());
+    bool is_zero = true;
+    for (size_t i = 0; i < zero_point_value.size(); i++) {
+        is_zero = is_zero && std::fabs(zero_point_value[i]);
+        int_zero_point.push_back(std::nearbyint(zero_point_value[i]));
+        if (std::fabs(zero_point_value[i] - int_zero_point[i]) >= 1e-4)
+            return false;
+    }
+
+    if (is_zero) {
+        copy_runtime_info(sub, convert);
+        replace_node(sub, convert);
+        return true;
+    }
+
+    auto new_weights = ov::constantfold_subgraph(std::make_shared<opset8::Subtract>(weights, opset8::Constant::create(weights->get_element_type(), zero_point->get_shape(), int_zero_point)));
+    if (!new_weights)
+        return false;
+    const auto weights_shifted = ov::constantfold_subgraph(sub);
+    if (!weights_shifted)
+        return false;
+    const auto weights_shifted_value = weights_shifted->cast_vector<float>();
+    const auto new_weights_value = new_weights->cast_vector<float>();
+
+    if (!std::equal(weights_shifted_value.begin(), weights_shifted_value.end(), new_weights_value.begin(), [] (float a, float b) { return std::fabs(a - b) < std::numeric_limits<float>::epsilon(); }))
+        return false;
+
+    new_weights->set_friendly_name(weights->get_friendly_name());
+    replace_node(weights, new_weights);
+
+    copy_runtime_info(sub, convert);
+    replace_node(sub, convert);
+
+    return true;
+}
+*/
+
 ngraph::pass::CompressQuantizeWeights::CompressQuantizeWeights() {
     MATCHER_SCOPE(CompressQuantizeWeights);
     auto weights_pattern = pattern::wrap_type<opset8::Constant>();
@@ -180,58 +224,41 @@ ngraph::pass::ZeroPointOptimizer::ZeroPointOptimizer() {
         if (!zero_point)
             return false;
 
-        auto zp_value = zero_point->cast_vector<float>();
-        if (std::all_of(zp_value.begin(), zp_value.end(), [](float f) -> bool {
-                return std::fabs(f) <= std::numeric_limits<float>::epsilon();
-            })) {
-            copy_runtime_info(sub, convert);
-            replace_node(sub, convert);
+        const auto zero_point_value = zero_point->cast_vector<float>();
+        std::vector<int> int_zero_point;
+        int_zero_point.reserve(zero_point_value.size());
+        bool is_zero = true;
+        for (size_t i = 0; i < zero_point_value.size(); i++) {
+            is_zero = is_zero && std::fabs(zero_point_value[i]) < std::numeric_limits<float>::epsilon();
+            int_zero_point.push_back(std::nearbyint(zero_point_value[i]));
+            if (std::fabs(zero_point_value[i] - int_zero_point[i]) >= 1e-4)
+                return false;
         }
 
-        auto int8_zero_point = std::make_shared<opset8::Convert>(
-            std::make_shared<opset8::Round>(zero_point, opset8::Round::RoundMode::HALF_TO_EVEN),
-            weights->get_element_type());
-        auto adj_zero_point = std::make_shared<opset8::Subtract>(
-            zero_point,
-            std::make_shared<opset8::Convert>(int8_zero_point, convert->get_element_type()));
+        if (is_zero) {
+            copy_runtime_info(sub, convert);
+            replace_node(sub, convert);
+            return true;
+        }
 
-        auto adj_zero_point_const = ov::constantfold_subgraph(adj_zero_point);
-        if (!adj_zero_point_const)
+        auto new_weights = ov::constantfold_subgraph(std::make_shared<opset8::Subtract>(weights, opset8::Constant::create(weights->get_element_type(), zero_point->get_shape(), int_zero_point)));
+        if (!new_weights)
             return false;
-        auto adj_zero_point_val = adj_zero_point_const->cast_vector<float>();
-        bool is_adj_zero_point_close_to_zero =
-            std::all_of(adj_zero_point_val.begin(), adj_zero_point_val.end(), [](float f) -> bool {
-                return std::fabs(f) < 1e-4;
-            });
-        if (!is_adj_zero_point_close_to_zero)
+        const auto weights_shifted = ov::constantfold_subgraph(sub);
+        if (!weights_shifted)
             return false;
+        const auto weights_shifted_value = weights_shifted->get_data_ptr<int8_t>();
+        const auto new_weights_value = new_weights->get_data_ptr<int8_t>();
 
-        auto transformed = std::make_shared<opset8::Subtract>(
-            std::make_shared<opset8::Convert>(std::make_shared<opset8::Subtract>(weights, int8_zero_point),
-                                              convert->get_element_type()),
-            adj_zero_point);
-        auto diff = std::make_shared<opset8::Subtract>(sub, transformed);
-        //auto diff_const = ov::get_constant_from_source(diff);
-        auto diff_const = ov::constantfold_subgraph(diff);
-        if (!diff_const)
-            return false;
-        auto diff_val = diff_const->cast_vector<float>();
-        bool is_transformed_and_original_equal = std::all_of(diff_val.begin(), diff_val.end(), [](float f) -> bool {
-            return std::fabs(f) < std::numeric_limits<float>::epsilon();
-        });
-        if (!is_transformed_and_original_equal)
+        if (!std::equal(weights_shifted_value, weights_shifted_value + weights_shifted->get_byte_size(), new_weights_value))
             return false;
 
-        std::shared_ptr<Node> new_weights = std::make_shared<opset8::Subtract>(weights, int8_zero_point);
-        if (auto constant = ov::constantfold_subgraph(new_weights))
-            new_weights = constant;
-        else
-            return false;
         new_weights->set_friendly_name(weights->get_friendly_name());
         replace_node(weights, new_weights);
 
         copy_runtime_info(sub, convert);
         replace_node(sub, convert);
+
         return true;
     };
 
