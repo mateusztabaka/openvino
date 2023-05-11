@@ -113,7 +113,7 @@ int runPipeline(const std::string &model, const std::string &device, const bool 
                     std::vector<ov::Output<const ov::Node>> inputs = exeNetwork.inputs();
                     if (reshape && dataShapes.empty()) {
                         fillTensors(inferRequest, defaultInputs);
-                    } else if (reshape && !dataShapes.empty()) {
+                    } else if (!dataShapes.empty()) {
                         fillTensorsWithSpecifiedShape(inferRequest, inputs, dataShapes);
                     } else {
                         fillTensors(inferRequest, inputs);
