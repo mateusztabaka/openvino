@@ -61,6 +61,7 @@ def prepare_executable_cmd(args: dict):
         str(args["executable"].resolve(strict=True)),
         "-m", str(args["model"].resolve(strict=True)),
         "-d", args["device"],
+        *["-data_shapes", args["data_shapes"] if args["data_shapes"] else ""],
         *["-ip", args["input_precision"] if args["input_precision"] else ""],
         *["-op", args["output_precision"] if args["output_precision"] else ""],
         "-c" if args["model_cache"] else ""
@@ -133,6 +134,11 @@ def cli_parser():
                         dest="device",
                         type=str,
                         help="Target device to infer on")
+    parser.add_argument("-ds",
+                        required=False,
+                        dest="data_shapes",
+                        type=str,
+                        help="Data shapes")
     parser.add_argument("-niter",
                         default=10,
                         type=check_positive_int,
