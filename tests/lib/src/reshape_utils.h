@@ -56,7 +56,7 @@ ov::Tensor fillTensorRandomDynamic(ov::Output<const ov::Node> &input, ov::Shape 
     std::vector<T>values(ov::shape_size(shape));
 
     for (size_t i = 0; i < values.size(); ++i) {
-        values[i] = 1 + static_cast<T>(rand()) / (static_cast<T>(RAND_MAX / (std::numeric_limits<T>::max() - 1)));
+        values[i] = 1 + static_cast<T>(rand()) / static_cast<T>(RAND_MAX);
     }
     std::memcpy(tensor.data(), values.data(), sizeof(T) * values.size());
 

@@ -57,7 +57,7 @@ def aggregate_stats(stats: dict):
 
 def prepare_executable_cmd(args: dict):
     """Generate common part of cmd from arguments to execute"""
-    return [
+    cmd = [
         str(args["executable"].resolve(strict=True)),
         "-m", str(args["model"].resolve(strict=True)),
         "-d", args["device"],
@@ -65,6 +65,9 @@ def prepare_executable_cmd(args: dict):
         *["-op", args["output_precision"] if args["output_precision"] else ""],
         "-c" if args["model_cache"] else ""
     ]
+    if args["data_shapes"]:
+        cmd.extend(["-data_shapes", args["data_shapes"]])
+    return cmd
 
 
 def run_timetest(args: dict, log=None):
@@ -134,6 +137,11 @@ def cli_parser():
                         dest="device",
                         type=str,
                         help="Target device to infer on")
+    parser.add_argument("-ds",
+                        required=False,
+                        dest="data_shapes",
+                        type=str,
+                        help="Data shapes")
     parser.add_argument("-niter",
                         default=10,
                         type=check_positive_int,
