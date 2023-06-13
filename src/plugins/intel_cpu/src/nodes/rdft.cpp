@@ -112,8 +112,22 @@ RDFT::RDFT(const std::shared_ptr<ngraph::Node>& op, const GraphContext::CPtr con
         auto signalSizesNode = ov::as_type<ov::op::v0::Constant>(op->get_input_node_ptr(2));
         if (!signalSizesNode)
             return;
-        isSignalSizesConstant = true;
         signalSizes = signalSizesNode->cast_vector<int>();
+        const auto& inputShape = inputShapes[DATA_INDEX].getDims();
+        for (size_t i = 0; i < signalSizes.size(); i++) {
+            if (signalSizes[i] == -1) {
+                if (!isAxesConstant || inputShape[axes[i]] == Shape::UNDEFINED_DIM) {
+                    signalSizes.clear();
+                    return;
+                }
+                if (inverse && i == signalSizes.size() - 1) {
+                    signalSizes[i] = 2 * (inputShape[axes[i]] - 1);
+                } else {
+                    signalSizes[i] = inputShape[axes[i]];
+                }
+            }
+        }
+        isSignalSizesConstant = true;
     } else if (isAxesConstant) {
         const auto& inputShape = inputShapes[DATA_INDEX].getDims();
         signalSizes = getDefaultSignalSizes(inputShape, axes, inverse);
@@ -193,12 +207,14 @@ void RDFT::prepareParams() {
             axes[i] = axesPtr[i] < 0 ? axesPtr[i] + inputRank : axesPtr[i];
         }
     }
+
+    const auto& inputShape = getParentEdgeAt(DATA_INDEX)->getMemory().getStaticDims();
+
     if (signalSizesChanged()) {
         if (getOriginalInputsNumber() <= SIGNAL_SIZE_INDEX) {
             if (signalSizes.size() != axes.size()) {
                 signalSizes.resize(axes.size());
             }
-            const auto& inputShape = getParentEdgeAt(DATA_INDEX)->getMemory().getStaticDims();
             for (size_t i = 0; i < axes.size() - 1; i++) {
                 signalSizes[i] = inputShape[axes[i]];
             }
@@ -215,7 +231,14 @@ void RDFT::prepareParams() {
             }
             const auto& signalSizesPtr = reinterpret_cast<const int*>(signalSizesMem->GetPtr());
             for (size_t i = 0; i < newSize; i++) {
-                signalSizes[i] = signalSizesPtr[i];
+                signalSizes[i] = signalSizesPtr[i] != -1 ? signalSizesPtr[i] : inputShape[axes[i]];
+                if (signalSizesPtr[i] != -1) {
+                    signalSizes[i] = signalSizesPtr[i];
+                } else if (inverse && i == newSize - 1) {
+                    signalSizes[i] = 2 * (inputShape[axes[i]] - 1);
+                } else {
+                    signalSizes[i] = inputShape[axes[i]];
+                }
             }
         }
     }
@@ -247,13 +270,15 @@ bool RDFT::signalSizesChanged() const {
     if (isSignalSizesConstant) {
         return false;
     }
+
     // signal sizes must have been changed if axes rank changed
     if (signalSizes.size() != axes.size()) {
         return true;
     }
 
+    const auto& inputShape = getParentEdgeAt(DATA_INDEX)->getMemory().getStaticDims();
+
     if (getOriginalInputsNumber() <= SIGNAL_SIZE_INDEX) {
-        const auto& inputShape = getParentEdgeAt(DATA_INDEX)->getMemory().getStaticDims();
         for (size_t i = 0; i < axes.size() - 1; i++) {
             if (static_cast<size_t>(signalSizes[i]) != inputShape[axes[i]]) {
                 return true;
@@ -269,7 +294,7 @@ bool RDFT::signalSizesChanged() const {
         }
         const auto& signalSizesPtr = reinterpret_cast<const int*>(signalSizesMem->GetPtr());
         for (size_t i = 0; i < newSize; i++) {
-            if (signalSizesPtr[i] != signalSizes[i]) {
+            if (signalSizesPtr[i] != signalSizes[i] || (signalSizesPtr[i] == -1 && signalSizes[i] != inputShape[axes[i]])) {
                 return true;
             }
         }
