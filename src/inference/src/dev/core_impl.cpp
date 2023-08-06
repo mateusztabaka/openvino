@@ -43,6 +43,9 @@
 #    include "openvino/proxy/plugin.hpp"
 #    include "openvino/proxy/properties.hpp"
 #endif
+#include "transformations/common_optimizations/enable_shapeof_constant_folding.hpp"
+#include "transformations/common_optimizations/moc_transformations.hpp"
+#include "transformations/low_precision/compress_quantize_weights.hpp"
 #include "xml_parse_utils.h"
 
 ov::ICore::~ICore() = default;
@@ -1627,9 +1630,20 @@ void ov::CoreImpl::add_mutex(const std::string& dev_name) {
     dev_mutexes[dev_name];
 }
 
+static void apply_moc_transformations(const std::shared_ptr<ov::Model>& model) {
+    ov::pass::Manager manager;
+    manager.register_pass<ov::pass::MOCTransformations>(false);
+    manager.register_pass<ov::pass::CompressQuantizeWeights>();
+    manager.register_pass<ov::pass::ZeroPointOptimizer>();
+    manager.register_pass<ov::pass::EnableShapeOfConstantFolding>();
+    manager.run_passes(model);
+}
+
 std::shared_ptr<ov::Model> ov::CoreImpl::read_model(const std::string& modelPath, const std::string& binPath) const {
     OV_ITT_SCOPE(FIRST_INFERENCE, ov::itt::domains::IE_RT, "CoreImpl::read_model from file");
-    return ReadNetwork(modelPath, binPath).getFunction();
+    auto function = ReadNetwork(modelPath, binPath).getFunction();
+    apply_moc_transformations(function);
+    return function;
 }
 
 std::shared_ptr<ov::Model> ov::CoreImpl::read_model(const std::string& model,
@@ -1640,5 +1654,7 @@ std::shared_ptr<ov::Model> ov::CoreImpl::read_model(const std::string& model,
         blob = tensor_to_blob(get_tensor_impl(weights));
     }
     OV_ITT_SCOPE(FIRST_INFERENCE, ov::itt::domains::IE_RT, "CoreImpl::read_model from memory");
-    return ReadNetwork(model, blob, frontendMode).getFunction();
+    auto function = ReadNetwork(model, blob, frontendMode).getFunction();
+    apply_moc_transformations(function);
+    return function;
 }

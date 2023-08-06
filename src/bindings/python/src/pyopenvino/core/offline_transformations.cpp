@@ -6,7 +6,6 @@
 
 #include <pybind11/stl.h>
 
-#include <compress_quantize_weights.hpp>
 #include <openvino/pass/make_stateful.hpp>
 #include <openvino/pass/serialize.hpp>
 #include <pot_transformations.hpp>
@@ -22,6 +21,7 @@
 
 #include "openvino/pass/low_latency.hpp"
 #include "openvino/pass/manager.hpp"
+#include "transformations/low_precision/compress_quantize_weights.hpp"
 
 namespace py = pybind11;
 
@@ -108,8 +108,8 @@ void regmodule_offline_transformations(py::module m) {
         "compress_quantize_weights_transformation",
         [](std::shared_ptr<ov::Model> model) {
             ov::pass::Manager manager;
-            manager.register_pass<ngraph::pass::CompressQuantizeWeights>();
-            manager.register_pass<ngraph::pass::ZeroPointOptimizer>();
+            manager.register_pass<ov::pass::CompressQuantizeWeights>();
+            manager.register_pass<ov::pass::ZeroPointOptimizer>();
             manager.run_passes(model);
         },
         py::arg("model"));

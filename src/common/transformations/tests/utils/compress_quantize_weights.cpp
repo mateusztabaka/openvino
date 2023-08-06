@@ -2,20 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+#include "transformations/low_precision/compress_quantize_weights.hpp"
+
 #include <gtest/gtest.h>
 
-#include <compress_quantize_weights.hpp>
-#include <memory>
-#include <ngraph/function.hpp>
-#include <ngraph/opsets/opset8.hpp>
-#include <ngraph/pass/manager.hpp>
-#include <transformations/init_node_info.hpp>
-#include <transformations/utils/utils.hpp>
+#include <openvino/core/model.hpp>
+#include <openvino/opsets/opset8.hpp>
+#include <openvino/pass/manager.hpp>
 
 #include "common_test_utils/ngraph_test_utils.hpp"
 
 using namespace testing;
-using namespace ngraph;
+using namespace ov;
 
 struct CompressQuantizeWeightsParams {
     Shape shape;
@@ -53,7 +51,7 @@ class CompressQuantizeWeightsTests
                                                              output_low,
                                                              output_high,
                                                              param.levels);
-            function = std::make_shared<Function>(fq, ParameterVector{});
+            function = std::make_shared<Model>(fq, ParameterVector{});
         }
 
         manager.register_pass<pass::CompressQuantizeWeights>();
@@ -65,7 +63,7 @@ class CompressQuantizeWeightsTests
             auto zero_point = opset8::Constant::create(element::f32, Shape{}, {param.zero_point_val});
             auto sub = std::make_shared<opset8::Subtract>(convert, zero_point);
             auto mul = std::make_shared<opset8::Multiply>(sub, scale);
-            function_ref = std::make_shared<Function>(mul, ParameterVector{});
+            function_ref = std::make_shared<Model>(mul, ParameterVector{});
         }
         comparator.enable(FunctionsComparator::CmpValues::CONST_VALUES);
         comparator.enable(FunctionsComparator::CmpValues::ACCURACY);
@@ -142,7 +140,7 @@ TEST_F(TransformationTestsF, CompressQuantizeWeightsWithDequantizationSubgraph) 
         auto sub = std::make_shared<opset8::Subtract>(second_convert, zero_point);
         auto mul = std::make_shared<opset8::Multiply>(sub, scale);
 
-        function = std::make_shared<Function>(NodeVector{mul}, ParameterVector{});
+        function = std::make_shared<Model>(NodeVector{mul}, ParameterVector{});
 
         manager.register_pass<pass::CompressQuantizeWeights>();
     }
@@ -153,7 +151,7 @@ TEST_F(TransformationTestsF, CompressQuantizeWeightsWithDequantizationSubgraph) 
         auto zero_point = opset8::Constant::create(element::f32, Shape{}, {2 - 255.0 / 10});
         auto sub = std::make_shared<opset8::Subtract>(convert, zero_point);
         auto mul = std::make_shared<opset8::Multiply>(sub, scale);
-        function_ref = std::make_shared<Function>(NodeVector{mul}, ParameterVector{});
+        function_ref = std::make_shared<Model>(NodeVector{mul}, ParameterVector{});
     }
     comparator.enable(FunctionsComparator::CmpValues::CONST_VALUES);
     comparator.enable(FunctionsComparator::CmpValues::ACCURACY);
@@ -167,7 +165,7 @@ TEST_F(TransformationTestsF, CompressQuantizeWeightsWithZeroPointOptimizer) {
         auto output_low = opset8::Constant::create(element::f32, Shape{3, 1, 1, 1}, {-0.402659, -0.383148, -0.34054});
         auto output_high = opset8::Constant::create(element::f32, Shape{3, 1, 1, 1}, {0.399513, 0.380155, 0.33788});
         auto fq = std::make_shared<opset8::FakeQuantize>(data, input_low, input_high, output_low, output_high, 256);
-        function = std::make_shared<Function>(NodeVector{fq}, ParameterVector{});
+        function = std::make_shared<Model>(NodeVector{fq}, ParameterVector{});
 
         manager.register_pass<pass::CompressQuantizeWeights>();
         manager.register_pass<pass::ZeroPointOptimizer>();
@@ -178,7 +176,7 @@ TEST_F(TransformationTestsF, CompressQuantizeWeightsWithZeroPointOptimizer) {
         auto convert = std::make_shared<opset8::Convert>(data, element::f32);
         auto scale = opset8::Constant::create(element::f32, Shape{3, 1, 1, 1}, {0.00314577, 0.00299335, 0.00266047});
         auto mul = std::make_shared<opset8::Multiply>(convert, scale);
-        function_ref = std::make_shared<Function>(NodeVector{mul}, ParameterVector{});
+        function_ref = std::make_shared<Model>(NodeVector{mul}, ParameterVector{});
     }
     comparator.enable(FunctionsComparator::CmpValues::CONST_VALUES);
     comparator.enable(FunctionsComparator::CmpValues::ACCURACY);
@@ -197,7 +195,7 @@ TEST_F(TransformationTestsF, CompressQuantizeWeightsWithZeroPointOptimizerFP16) 
                                                     Shape{3, 1, 1, 1},
                                                     {-0.295166015625, -0.74169921875, -0.64501953125});
         auto fq = std::make_shared<opset8::FakeQuantize>(data, input_low, input_high, output_low, output_high, 255);
-        function = std::make_shared<Function>(NodeVector{fq}, ParameterVector{});
+        function = std::make_shared<Model>(NodeVector{fq}, ParameterVector{});
 
         manager.register_pass<pass::CompressQuantizeWeights>();
         manager.register_pass<pass::ZeroPointOptimizer>();
@@ -208,7 +206,7 @@ TEST_F(TransformationTestsF, CompressQuantizeWeightsWithZeroPointOptimizerFP16) 
         auto convert = std::make_shared<opset8::Convert>(data, element::f16);
         auto scale = opset8::Constant::create(element::f16, Shape{3, 1, 1, 1}, {-0.002325, -0.00584, -0.005077});
         auto mul = std::make_shared<opset8::Multiply>(convert, scale);
-        function_ref = std::make_shared<Function>(NodeVector{mul}, ParameterVector{});
+        function_ref = std::make_shared<Model>(NodeVector{mul}, ParameterVector{});
     }
     comparator.enable(FunctionsComparator::CmpValues::CONST_VALUES);
     comparator.enable(FunctionsComparator::CmpValues::ACCURACY);
@@ -222,7 +220,7 @@ TEST_F(TransformationTestsF, NegativeCompressQuantizeWeightsWithZeroPointOptimiz
         auto output_low = opset8::Constant::create(element::f32, Shape{}, {-2});
         auto output_high = opset8::Constant::create(element::f32, Shape{}, {6});
         auto fq = std::make_shared<opset8::FakeQuantize>(data, input_low, input_high, output_low, output_high, 256);
-        function = std::make_shared<Function>(NodeVector{fq}, ParameterVector{});
+        function = std::make_shared<Model>(NodeVector{fq}, ParameterVector{});
 
         manager.register_pass<pass::CompressQuantizeWeights>();
         manager.register_pass<pass::ZeroPointOptimizer>();
@@ -234,7 +232,7 @@ TEST_F(TransformationTestsF, NegativeCompressQuantizeWeightsWithZeroPointOptimiz
         auto zero_point = opset8::Constant::create(element::f32, Shape{}, {-64.25});
         auto sub = std::make_shared<opset8::Subtract>(convert, zero_point);
         auto mul = std::make_shared<opset8::Multiply>(sub, scale);
-        function_ref = std::make_shared<Function>(NodeVector{mul}, ParameterVector{});
+        function_ref = std::make_shared<Model>(NodeVector{mul}, ParameterVector{});
     }
     comparator.enable(FunctionsComparator::CmpValues::CONST_VALUES);
     comparator.enable(FunctionsComparator::CmpValues::ACCURACY);
@@ -247,7 +245,7 @@ TEST_F(TransformationTestsF, NegativeCompressQuantizeWeightsNonConstantInput) {
     auto output_low = opset8::Constant::create(element::f32, Shape{}, {-2});
     auto output_high = opset8::Constant::create(element::f32, Shape{}, {6});
     auto fq = std::make_shared<opset8::FakeQuantize>(data, input_low, input_high, output_low, output_high, 256);
-    function = std::make_shared<Function>(NodeVector{fq}, ParameterVector{data});
+    function = std::make_shared<Model>(NodeVector{fq}, ParameterVector{data});
 
     manager.register_pass<pass::CompressQuantizeWeights>();
     manager.register_pass<pass::ZeroPointOptimizer>();
