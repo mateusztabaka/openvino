@@ -168,6 +168,7 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
     // the transformation and it also inserts Transpose that can be optimized by TransposeSinking
     ADD_MATCHER(transpose_sinking, SplitSqueezeConcatFusion)
     auto eliminations = manager.register_pass<ov::pass::GraphRewrite>();
+    ADD_MATCHER(eliminations, TransposeToReshape)
     ADD_MATCHER(eliminations, EliminateUnsqueezeGather)
     ADD_MATCHER(eliminations, NopElimination, m_use_shapes)
     ADD_MATCHER(eliminations, SelectWithOneValueCondition)
@@ -201,7 +202,6 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
 
     ADD_MATCHER(common_fusions, DivideFusion)
     ADD_MATCHER(common_fusions, SubtractFusion)
-    ADD_MATCHER(common_fusions, TransposeToReshape)
     ADD_MATCHER(common_fusions, ReshapeSequenceFusion, m_use_shapes)
     ADD_MATCHER(common_fusions, MatMulConstTransposesExtraction)
     ADD_MATCHER(common_fusions, PReluFusion)
