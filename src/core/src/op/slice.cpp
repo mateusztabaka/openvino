@@ -13,6 +13,8 @@
 #include "ngraph/op/constant.hpp"
 #include "ngraph/runtime/reference/slice.hpp"
 #include "slice_shape_inference.hpp"
+#include "openvino/pass/constant_folding.hpp"
+#include "openvino/core/rt_info.hpp"
 
 using namespace std;
 using namespace ngraph;
@@ -221,4 +223,27 @@ bool op::v8::Slice::evaluate_label(TensorLabelVector& output_labels) const {
     OPENVINO_SUPPRESS_DEPRECATED_START
     return default_label_evaluator(this, output_labels);
     OPENVINO_SUPPRESS_DEPRECATED_END
+}
+
+bool op::v8::Slice::constant_fold(OutputVector& output_values, const OutputVector& input_values) {
+    bool is_folded = Node::constant_fold(output_values, input_values);
+    if (!is_const_fold_disabled() && !is_folded) {
+        std::vector<Node*> nodes;
+        const auto out = output(0);
+        if (ov::could_propagate(out, nodes) && std::none_of(nodes.begin(), nodes.end(), [](const Node* n) {
+                return ov::pass::constant_folding_is_disabled(n);
+            })) {
+            OPENVINO_SUPPRESS_DEPRECATED_START
+            if (const auto constant = ov::get_constant_from_source(out)) {
+                OPENVINO_SUPPRESS_DEPRECATED_END
+                output_values[0] = constant;
+                auto output_ptr = output_values[0].get_node_shared_ptr();
+                for (const auto n : nodes) {
+                    copy_runtime_info(n->shared_from_this(), output_ptr);
+                }
+                is_folded = true;
+            }
+        }
+    }
+    return is_folded;
 }
