@@ -21,6 +21,7 @@
 #include <transformations/common_optimizations/dilated_convolution_converter.hpp>
 #include <transformations/common_optimizations/disable_random_uniform_constant_folding.hpp>
 #include <transformations/common_optimizations/disable_shapeof_constant_folding.hpp>
+#include <transformations/common_optimizations/enable_shapeof_constant_folding.hpp>
 #include <transformations/common_optimizations/divide_fusion.hpp>
 #include <transformations/common_optimizations/eliminate_duplicate_ti_inputs.hpp>
 #include <transformations/common_optimizations/eliminate_unsqueeze_gather.hpp>
@@ -109,6 +110,8 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
     }
     if (!m_use_shapes) {
         manager.register_pass<ov::pass::DisableShapeOfConstantFolding>();
+    } else {
+        manager.register_pass<ov::pass::EnableShapeOfConstantFolding>();
     }
     // RemoveConcatZeroDimInput and RemoveMultiSubGraphOpDanglingParamsResults
     // should be performed before first ConstantFolding call.
