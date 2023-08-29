@@ -11,6 +11,7 @@
 #include <transformations/common_optimizations/batch_to_space_fusion.hpp>
 #include <transformations/common_optimizations/binarize_weights.hpp>
 #include <transformations/common_optimizations/broadcast_elementwise_fusion.hpp>
+#include "transformations/common_optimizations/broadcast_transition.hpp"
 #include <transformations/common_optimizations/clamp_fusion.hpp>
 #include <transformations/common_optimizations/conv_mul_fusion.hpp>
 #include <transformations/common_optimizations/conv_to_binary_conv.hpp>
@@ -21,6 +22,7 @@
 #include <transformations/common_optimizations/dilated_convolution_converter.hpp>
 #include <transformations/common_optimizations/disable_random_uniform_constant_folding.hpp>
 #include <transformations/common_optimizations/disable_shapeof_constant_folding.hpp>
+#include <transformations/common_optimizations/enable_shapeof_constant_folding.hpp>
 #include <transformations/common_optimizations/divide_fusion.hpp>
 #include <transformations/common_optimizations/eliminate_duplicate_ti_inputs.hpp>
 #include <transformations/common_optimizations/eliminate_unsqueeze_gather.hpp>
@@ -82,6 +84,7 @@
 #include <transformations/op_conversions/convert_ti_to_sequences.hpp>
 #include <transformations/smart_reshape/lstm_states_broadcast.hpp>
 #include <transformations/smart_reshape/reshape_sinking.hpp>
+#include "transformations/smart_reshape/matmul_sr.hpp"
 
 #include "itt.hpp"
 #include "transformations/resolve_names_collisions.hpp"
@@ -109,6 +112,8 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
     }
     if (!m_use_shapes) {
         manager.register_pass<ov::pass::DisableShapeOfConstantFolding>();
+    } else {
+        manager.register_pass<ov::pass::EnableShapeOfConstantFolding>();
     }
     // RemoveConcatZeroDimInput and RemoveMultiSubGraphOpDanglingParamsResults
     // should be performed before first ConstantFolding call.
@@ -154,6 +159,7 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
     REGISTER_PASS(manager, ConvertNmsGatherPathToUnsigned)
     REGISTER_PASS(manager, StridedSliceOptimization, m_use_shapes)
     REGISTER_PASS(manager, BroadcastElementwiseFusion)
+    REGISTER_PASS(manager, BroadcastTransition)
     REGISTER_PASS(manager, PullThroughReduce)
 
     // GRUCellFusion and SequenceFusion should be before NopElimination
@@ -162,11 +168,13 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ngraph::Fu
 
     auto transpose_sinking = manager.register_pass<ov::pass::GraphRewrite>();
     ADD_MATCHER(transpose_sinking, TransposeSinking)
-
     // SplitSqueezeConcatFusion should work in same GraphRewrite as TransposesSinking,
     // because it replaces pattern that may contain Transposes which must be optimized before
     // the transformation and it also inserts Transpose that can be optimized by TransposeSinking
     ADD_MATCHER(transpose_sinking, SplitSqueezeConcatFusion)
+
+    REGISTER_PASS(manager, TransposeMatMul)
+
     auto eliminations = manager.register_pass<ov::pass::GraphRewrite>();
     ADD_MATCHER(eliminations, TransposeToReshape)
     ADD_MATCHER(eliminations, EliminateUnsqueezeGather)

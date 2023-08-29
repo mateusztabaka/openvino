@@ -10,12 +10,14 @@
 #include <openvino/op/reshape.hpp>
 #include <openvino/op/shape_of.hpp>
 #include <openvino/op/slice.hpp>
+#include <openvino/op/strided_slice.hpp>
 #include <openvino/op/squeeze.hpp>
 #include <openvino/op/tile.hpp>
 #include <openvino/op/unsqueeze.hpp>
 #include <openvino/op/util/sub_graph_base.hpp>
 #include <transformations/common_optimizations/shared_ops_optimization.hpp>
 
+#include "transformations/utils/slice_params.hpp"
 #include "itt.hpp"
 
 using namespace std;
@@ -23,7 +25,25 @@ using namespace ov;
 using namespace ov::op;
 
 namespace {
-using rules_t = unordered_map<Node::type_info_t, bool (*)(const Node*, const Node*)>;
+
+struct node_type_info_hash {
+    size_t operator()(const Node::type_info_t& info) const {
+        if (info == v8::Slice::get_type_info_static())
+           return std::hash<DiscreteTypeInfo>()(v1::StridedSlice::get_type_info_static());
+        return std::hash<DiscreteTypeInfo>()(info);
+    }
+};
+
+struct node_type_info_equal {
+    bool operator()(const Node::type_info_t& lhs, const Node::type_info_t& rhs) const {
+        if (lhs == rhs)
+            return true;
+        node_type_info_hash hash;
+        return hash(lhs) == hash(rhs);
+    }
+};
+
+using rules_t = unordered_map<Node::type_info_t, bool (*)(const Node*, const Node*), node_type_info_hash, node_type_info_equal>;
 
 bool shared_node_optimization(const shared_ptr<Model>& model, const rules_t& rules) {
     bool rewritten = false;
@@ -40,11 +60,14 @@ bool shared_node_optimization(const shared_ptr<Model>& model, const rules_t& rul
             const auto& target_inputs = output.get_target_inputs();
             if (target_inputs.size() <= 1)
                 continue;  // nothing to optimize
-            unordered_map<Node::type_info_t, vector<Node*>> type_to_node;
-            for (const auto& input : target_inputs)
-                if (auto node = input.get_node())
-                    if (rules.count(node->get_type_info()))
+            unordered_map<Node::type_info_t, vector<Node*>, node_type_info_hash, node_type_info_equal> type_to_node;
+            for (const auto& input : target_inputs) {
+                if (auto node = input.get_node()) {
+                    if (rules.count(node->get_type_info())) {
                         type_to_node[node->get_type_info()].push_back(node);
+                    }
+                }
+            }
             for (auto& item : type_to_node) {
                 auto& shared_nodes = item.second;
                 if (shared_nodes.size() < 2)
@@ -162,6 +185,16 @@ bool converts_are_equal(const Node* lhs, const Node* rhs) {
            inputs_from_same_source_or_equal_constants(lhs, rhs);
 }
 
+bool slices_are_equal(const Node* lhs, const Node* rhs) {
+    const auto lhs_params = ov::op::util::get_slice_params(lhs);
+    if (!lhs_params)
+        return false;
+    const auto rhs_params = ov::op::util::get_slice_params(rhs);
+    if (!rhs_params)
+        return false;
+    return *lhs_params == *rhs_params;
+}
+
 bool shape_of_upgrade(const shared_ptr<Model>& model) {
     bool rewritten = false;
     for (const auto& op : model->get_ordered_ops()) {
@@ -191,7 +224,6 @@ bool pass::SharedOpOptimization::run_on_model(const shared_ptr<Model>& model) {
 
     const rules_t rules = {
         // no attributes
-        RECORD_NO_ATTRIBUTES(v8::Slice),
         RECORD_NO_ATTRIBUTES(v0::Squeeze),
         RECORD_NO_ATTRIBUTES(v0::Tile),
         RECORD_NO_ATTRIBUTES(v0::Unsqueeze),
@@ -206,6 +238,8 @@ bool pass::SharedOpOptimization::run_on_model(const shared_ptr<Model>& model) {
         RECORD(v1::Reshape, reshapes_are_equal),
         RECORD(v0::ShapeOf, shapeof_are_equal),
         RECORD(v3::ShapeOf, shapeof_are_equal),
+        RECORD(v8::Slice, slices_are_equal),
+        RECORD(v1::StridedSlice, slices_are_equal),
     };  // TODO: use visit_attributes to uniformly perform attributes check in the future and get rid of rules table
 
     bool rewritten = shape_of_upgrade(model);
