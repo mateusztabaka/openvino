@@ -86,6 +86,7 @@
 #include "transformations/op_conversions/convert_ti_to_sequences.hpp"
 #include "transformations/resolve_names_collisions.hpp"
 #include "transformations/smart_reshape/lstm_states_broadcast.hpp"
+#include "transformations/smart_reshape/matmul_sr.hpp"
 #include "transformations/smart_reshape/reshape_sinking.hpp"
 
 bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ov::Model>& f) {
@@ -146,6 +147,7 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ov::Model>
         REGISTER_PASS(manager, ReshapeSinkingMatMul)
         REGISTER_PASS(manager, Validate)
     }
+    REGISTER_PASS(manager, ReshapeAMatMul);
     REGISTER_PASS(manager, ConvertQuantizeDequantize)
     REGISTER_PASS(manager, SimplifyShapeOfSubGraph, m_use_shapes)
 
