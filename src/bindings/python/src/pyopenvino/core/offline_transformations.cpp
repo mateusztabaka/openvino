@@ -6,12 +6,12 @@
 
 #include <pybind11/stl.h>
 
-#include <compress_quantize_weights.hpp>
 #include <openvino/pass/make_stateful.hpp>
 #include <openvino/pass/serialize.hpp>
 #include <pot_transformations.hpp>
 #include <pruning.hpp>
 #include <transformations/common_optimizations/compress_float_constants.hpp>
+#include <transformations/common_optimizations/compress_quantize_weights.hpp>
 #include <transformations/common_optimizations/fused_names_cleanup.hpp>
 #include <transformations/common_optimizations/mark_precision_sensitive_shapeof_subgraphs.hpp>
 #include <transformations/common_optimizations/moc_legacy_transformations.hpp>

@@ -5,11 +5,12 @@
 #pragma once
 
 #include "openvino/pass/graph_rewrite.hpp"
+#include "transformations_visibility.hpp"
 
 namespace ov {
 namespace pass {
 
-class CompressQuantizeWeights;
+class TRANSFORMATIONS_API CompressQuantizeWeights;
 
 }  // namespace pass
 }  // namespace ov

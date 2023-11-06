@@ -9,9 +9,14 @@
 #include "openvino/core/model.hpp"
 #include "openvino/core/preprocess/pre_post_process.hpp"
 #include "openvino/frontend/manager.hpp"
+#include "openvino/pass/manager.hpp"
 #include "openvino/runtime/aligned_buffer.hpp"
 #include "openvino/runtime/shared_buffer.hpp"
 #include "openvino/util/file_util.hpp"
+#include "transformations/common_optimizations/compress_quantize_weights.hpp"
+#include "transformations/common_optimizations/enable_shapeof_constant_folding.hpp"
+#include "transformations/common_optimizations/moc_transformations.hpp"
+#include "transformations/smart_reshape/smart_reshape.hpp"
 #include "transformations/utils/utils.hpp"
 
 namespace {
@@ -85,6 +90,24 @@ void update_v10_model(std::shared_ptr<ov::Model>& model, bool frontendMode = fal
         model = prepost.build();
     }
 }
+
+void apply_moc_transformations(std::shared_ptr<ov::Model>& model) {
+    ov::pass::Manager manager;
+    manager.register_pass<ov::pass::SmartReshape>();
+    manager.register_pass<ov::pass::MOCTransformations>(false);
+    manager.register_pass<ov::pass::CompressQuantizeWeights>();
+    manager.register_pass<ov::pass::EnableShapeOfConstantFolding>();
+    manager.run_passes(model);
+}
+
+std::shared_ptr<ov::Model> convert_model(const ov::frontend::FrontEnd::Ptr& FE,
+                                         const ov::frontend::InputModel::Ptr& input_model) {
+    auto model = FE->convert(input_model);
+    update_v10_model(model);
+    apply_moc_transformations(model);
+    return model;
+}
+
 }  // namespace
 
 namespace ov {
@@ -125,9 +148,7 @@ std::shared_ptr<ov::Model> read_model(const std::string& modelPath,
     }
 
     if (inputModel) {
-        auto model = FE->convert(inputModel);
-        update_v10_model(model);
-        return model;
+        return convert_model(FE, inputModel);
     }
 
     const auto fileExt = modelPath.substr(modelPath.find_last_of(".") + 1);
@@ -170,9 +191,7 @@ std::shared_ptr<ov::Model> read_model(const std::string& model,
         inputModel = FE->load(params);
     }
     if (inputModel) {
-        auto model = FE->convert(inputModel);
-        update_v10_model(model);
-        return model;
+        return convert_model(FE, inputModel);
     }
 
     OPENVINO_THROW("Unable to read the model. Please check if the model format is supported and model is correct.");

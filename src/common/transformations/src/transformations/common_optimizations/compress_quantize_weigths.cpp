@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "compress_quantize_weights.hpp"
 #include "openvino/core/rt_info.hpp"
 #include "openvino/core/validation_util.hpp"
 #include "openvino/op/constant.hpp"
@@ -17,6 +16,7 @@
 #include "openvino/reference/autobroadcast_binop.hpp"
 #include "openvino/reference/convert.hpp"
 #include "openvino/reference/fake_quantize.hpp"
+#include "transformations/common_optimizations/compress_quantize_weights.hpp"
 #include "validation_util.hpp"
 
 static bool has_dequantization_subgraph(const std::shared_ptr<ov::Node>& fq,

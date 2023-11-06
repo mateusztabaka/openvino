@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
-#include "compress_quantize_weights.hpp"
+#include "transformations/common_optimizations/compress_quantize_weights.hpp"
 
 #include <gtest/gtest.h>
 
