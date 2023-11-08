@@ -155,6 +155,10 @@ void TransformationsPipeline::apply(std::shared_ptr<ov::Model> func) {
     const auto& defaultPrecisions = ov::pass::low_precision::precision_set::get_int8_support();
     bool enableInt8;
     bool unroll_loop = config.get_property(ov::intel_gpu::enable_loop_unrolling);
+    precisions_map fp_convert_precision_map = {
+            {ov::element::f64, ov::element::f32}
+    };
+
     {
         ov::pass::Manager manager;
         auto pass_config = manager.get_pass_config();
@@ -174,10 +178,6 @@ void TransformationsPipeline::apply(std::shared_ptr<ov::Model> func) {
 
         manager.register_pass<ov::pass::InitNodeInfo>();
         manager.register_pass<EinsumDecomposition>();
-
-        precisions_map fp_convert_precision_map = {
-                {ov::element::f64, ov::element::f32}
-        };
 
         // call conversion of float types with keep_precision_sensitive_in_fp32 = true
         auto fp_precision_supported = [&](ov::element::Type e) -> bool {
@@ -620,7 +620,11 @@ void TransformationsPipeline::apply(std::shared_ptr<ov::Model> func) {
         bool reshapeIgnorePerTensorQuantizationCheck = false;
         if (device_info.supports_immad) // Disable reshape transform until onednn i8 fc is optimized
             reshapeIgnorePerTensorQuantizationCheck = true;
-        auto params = LayerTransformation::Params(true, element::f32, defaultPrecisions, reshapeIgnorePerTensorQuantizationCheck);
+        auto deq_precision = element::f32;
+        if (fp_convert_precision_map.count(deq_precision)) {
+            deq_precision = fp_convert_precision_map[deq_precision];
+        }
+        auto params = LayerTransformation::Params(true, deq_precision, defaultPrecisions, reshapeIgnorePerTensorQuantizationCheck);
         lptManager.register_pass<LowPrecision>(supportedPrecisions, perTensorQuantization, params);
         lptManager.run_passes(func);
     }
