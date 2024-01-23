@@ -391,3 +391,40 @@ TEST_F(TransformationTestsF, NegativeCompressQuantizeWeightsNonConstantInput) {
     comparator.enable(FunctionsComparator::CmpValues::CONST_VALUES);
     comparator.enable(FunctionsComparator::CmpValues::ACCURACY);
 }
+
+using CompressWeightsWithFakeConvertParams = std::tuple<std::string>;
+
+class CompressWeightsWithFakeConvert : public TransformationTestsF,
+                                       public testing::WithParamInterface<CompressWeightsWithFakeConvertParams> {};
+
+TEST_P(CompressWeightsWithFakeConvert, FusionTest) {
+    const auto& params = GetParam();
+    const auto& destination_type = std::get<0>(params);
+
+    {
+        auto weights = op::v0::Constant::create(element::f32, Shape{3, 4, 2, 2}, {0.5});
+        auto scale = op::v0::Constant::create(element::f32, Shape{}, {0.503});
+        auto shift = op::v0::Constant::create(element::f32, Shape{}, {2.05});
+        auto fake_convert = std::make_shared<op::v13::FakeConvert>(weights, scale, shift, destination_type);
+        model = std::make_shared<Model>(fake_convert, ParameterVector{});
+
+        manager.register_pass<ov::pass::CompressQuantizeWeights>();
+    }
+
+    {
+        auto weights = op::v0::Constant::create(element::Type(destination_type), Shape{3, 4, 2, 2}, {-1.75});
+        auto convert = std::make_shared<op::v0::Convert>(weights, element::f32);
+        auto shift = op::v0::Constant::create(element::f32, Shape{}, {-2.05});
+        auto subtract = std::make_shared<op::v1::Subtract>(convert, shift);
+        auto scale = op::v0::Constant::create(element::f32, Shape{}, {1.988});
+        auto multiply = std::make_shared<op::v1::Multiply>(subtract, scale);
+        model_ref = std::make_shared<Model>(multiply, ParameterVector{});
+    }
+
+    comparator.enable(FunctionsComparator::CmpValues::CONST_VALUES);
+    comparator.enable(FunctionsComparator::CmpValues::ACCURACY);
+}
+
+INSTANTIATE_TEST_SUITE_P(CompressQuantizeWeights,
+                         CompressWeightsWithFakeConvert,
+                         testing::Combine(testing::Values("f8e4m3", "f8e5m2")));

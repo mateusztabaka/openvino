@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2023 Intel Corporation
+// Copyright (C) 2018-2024 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -8,6 +8,7 @@
 #include "openvino/op/constant.hpp"
 #include "openvino/op/convert.hpp"
 #include "openvino/op/divide.hpp"
+#include "openvino/op/fake_convert.hpp"
 #include "openvino/op/fake_quantize.hpp"
 #include "openvino/op/multiply.hpp"
 #include "openvino/op/subtract.hpp"
@@ -17,50 +18,53 @@
 #include "openvino/reference/autobroadcast_binop.hpp"
 #include "openvino/reference/convert.hpp"
 #include "openvino/reference/fake_quantize.hpp"
+#include "transformations/utils/utils.hpp"
 #include "validation_util.hpp"
 
-static bool has_dequantization_subgraph(const std::shared_ptr<ov::Node>& fq,
-                                        std::shared_ptr<ov::Node>& convert_to_low_precision,
-                                        std::shared_ptr<ov::Node>& convert_to_high_precision,
-                                        std::shared_ptr<ov::Node>& zero_point);
+using namespace ov;
+using namespace pass;
 
-static bool compute_scale_and_zero_point(const std::shared_ptr<ov::op::v0::Constant>& output_low,
-                                         const std::shared_ptr<ov::op::v0::Constant>& output_high,
+static bool has_dequantization_subgraph(const std::shared_ptr<Node>& fq,
+                                        std::shared_ptr<Node>& convert_to_low_precision,
+                                        std::shared_ptr<Node>& convert_to_high_precision,
+                                        std::shared_ptr<Node>& zero_point);
+
+static bool compute_scale_and_zero_point(const std::shared_ptr<op::v0::Constant>& output_low,
+                                         const std::shared_ptr<op::v0::Constant>& output_high,
                                          size_t levels,
-                                         ov::Tensor& scale_tensor,
-                                         ov::Tensor& zero_point_tensor,
+                                         Tensor& scale_tensor,
+                                         Tensor& zero_point_tensor,
                                          bool& zero_point_is_zero);
 
-static std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights(
-    const std::shared_ptr<ov::op::v0::Constant>& weights,
-    const std::shared_ptr<ov::op::v0::FakeQuantize>& fq,
-    const std::shared_ptr<ov::op::v0::Constant>& input_low,
-    const std::shared_ptr<ov::op::v0::Constant>& input_high,
-    const std::shared_ptr<ov::op::v0::Constant>& output_low,
-    const std::shared_ptr<ov::op::v0::Constant>& output_high,
-    const std::shared_ptr<ov::Node>& convert,
-    const std::shared_ptr<ov::Node>& zero_point,
+static std::shared_ptr<op::v0::Constant> compress_quantized_weights(
+    const std::shared_ptr<op::v0::Constant>& weights,
+    const std::shared_ptr<op::v0::FakeQuantize>& fq,
+    const std::shared_ptr<op::v0::Constant>& input_low,
+    const std::shared_ptr<op::v0::Constant>& input_high,
+    const std::shared_ptr<op::v0::Constant>& output_low,
+    const std::shared_ptr<op::v0::Constant>& output_high,
+    const std::shared_ptr<Node>& convert,
+    const std::shared_ptr<Node>& zero_point,
     bool& can_fuse_zero_point);
 
-static std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights(
-    const std::shared_ptr<ov::op::v0::Constant>& weights,
-    const std::shared_ptr<ov::op::v0::Constant>& input_low,
-    const std::shared_ptr<ov::op::v0::Constant>& input_high,
-    const ov::element::Type& low_precision_type,
-    size_t levels,
-    bool zero_point_is_zero,
-    const ov::Tensor& zero_point_tensor,
-    bool& can_fuse_zero_point);
+static std::shared_ptr<op::v0::Constant> compress_quantized_weights(const std::shared_ptr<op::v0::Constant>& weights,
+                                                                    const std::shared_ptr<op::v0::Constant>& input_low,
+                                                                    const std::shared_ptr<op::v0::Constant>& input_high,
+                                                                    const element::Type& low_precision_type,
+                                                                    size_t levels,
+                                                                    bool zero_point_is_zero,
+                                                                    const Tensor& zero_point_tensor,
+                                                                    bool& can_fuse_zero_point);
 
-static void replace_with_dequantize_subgraph(const std::shared_ptr<ov::op::v0::FakeQuantize>& fq,
-                                             const std::shared_ptr<ov::op::v0::Constant>& new_weights,
-                                             const ov::element::Type& high_precision_type,
-                                             const ov::Shape& scale_or_zero_point_shape,
-                                             const ov::Tensor& scale_tensor,
+static void replace_with_dequantize_subgraph(const std::shared_ptr<op::v0::FakeQuantize>& fq,
+                                             const std::shared_ptr<op::v0::Constant>& new_weights,
+                                             const element::Type& high_precision_type,
+                                             const Shape& scale_or_zero_point_shape,
+                                             const Tensor& scale_tensor,
                                              bool zero_point_is_zero,
-                                             const ov::Tensor& zero_point_tensor = {});
+                                             const Tensor& zero_point_tensor = {});
 
-ov::pass::CompressQuantizeWeights::CompressQuantizeWeights() {
+CompressWeightsWithFakeQuantize::CompressWeightsWithFakeQuantize() {
     auto weights_const_pattern = pattern::wrap_type<op::v0::Constant>();
     auto weights_convert_pattern = pattern::wrap_type<op::v0::Convert>({weights_const_pattern});
     OutputVector weights_options{weights_const_pattern, weights_convert_pattern};
@@ -72,25 +76,25 @@ ov::pass::CompressQuantizeWeights::CompressQuantizeWeights() {
     auto fq_pattern = pattern::wrap_type<op::v0::FakeQuantize>(
         {weights_pattern, input_low_pattern, input_high_pattern, output_low_pattern, output_high_pattern});
 
-    ov::matcher_pass_callback callback = [=](pattern::Matcher& m) {
+    matcher_pass_callback callback = [=](pattern::Matcher& m) {
         auto fq = std::dynamic_pointer_cast<op::v0::FakeQuantize>(m.get_match_root());
         if (!fq)
             return false;
         const auto& high_precision_type = fq->get_element_type();
 
-        auto weights = ov::util::constantfold_subgraph(fq->get_input_node_shared_ptr(0));
+        auto weights = util::constantfold_subgraph(fq->get_input_node_shared_ptr(0));
         if (!weights)
             return false;
-        auto input_low = ov::as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(1));
+        auto input_low = as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(1));
         if (!input_low)
             return false;
-        auto input_high = ov::as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(2));
+        auto input_high = as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(2));
         if (!input_high)
             return false;
-        auto output_low = ov::as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(3));
+        auto output_low = as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(3));
         if (!output_low)
             return false;
-        auto output_high = ov::as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(4));
+        auto output_high = as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(4));
         if (!output_high)
             return false;
 
@@ -116,7 +120,7 @@ ov::pass::CompressQuantizeWeights::CompressQuantizeWeights() {
             replace_node(convert_to_low_precision, new_weights);
             copy_runtime_info({fq, convert_to_low_precision}, new_weights);
             // preserve dequantization subgraph for LP transformations
-            ov::pass::disable_constant_folding(convert_to_high_precision);
+            disable_constant_folding(convert_to_high_precision);
             if (can_fuse_zero_point) {
                 auto subtract = convert_to_high_precision->get_users()[0];
                 auto subtract_consumers = subtract->output(0).get_target_inputs();
@@ -220,22 +224,101 @@ ov::pass::CompressQuantizeWeights::CompressQuantizeWeights() {
         return true;
     };
 
-    auto m = std::make_shared<ov::pass::pattern::Matcher>(fq_pattern, "CompressQuantizeWeights");
+    auto m = std::make_shared<pattern::Matcher>(fq_pattern, "CompressWeightsWithFakeQuantize");
     this->register_matcher(m, callback);
 }
 
-static ov::Tensor tensor_from_constant(const std::shared_ptr<ov::op::v0::Constant>& constant) {
-    return ov::Tensor(constant->get_element_type(), constant->get_shape(), const_cast<void*>(constant->get_data_ptr()));
+static std::shared_ptr<op::v0::Constant> get_fake_convert_shift(
+    const std::shared_ptr<op::v13::FakeConvert>& fake_convert) {
+    if (fake_convert->get_input_size() < 3)
+        return nullptr;
+    const auto shift = ov::as_type_ptr<op::v0::Constant>(fake_convert->get_input_node_shared_ptr(2));
+    if (!shift)
+        return nullptr;
+    float value = -1.0f;
+    if (!op::util::get_single_value(shift, value) || value != 0.0f)
+        return shift;
+    return nullptr;
 }
 
-static bool evaluate_node(const std::shared_ptr<ov::Node>& node,
-                          const ov::TensorVector& input_tensors,
-                          ov::Tensor& output_tensor) {
+CompressWeightsWithFakeConvert::CompressWeightsWithFakeConvert() {
+    auto weights_const_pattern = pattern::wrap_type<op::v0::Constant>();
+    auto weights_convert_pattern = pattern::wrap_type<op::v0::Convert>({weights_const_pattern});
+    OutputVector weights_options{weights_const_pattern, weights_convert_pattern};
+    auto weights_pattern = std::make_shared<pattern::op::Or>(weights_options);
+    auto fake_convert_pattern = pattern::wrap_type<op::v13::FakeConvert>(
+        {weights_pattern, pattern::wrap_type<op::v0::Constant>(), pattern::wrap_type<op::v0::Constant>()});
+
+    matcher_pass_callback callback = [=](pattern::Matcher& m) {
+        const auto& pattern_map = m.get_pattern_map();
+        const auto fake_convert = ov::as_type_ptr<op::v13::FakeConvert>(m.get_match_root());
+        auto weights = pattern_map.at(weights_const_pattern);
+
+        NodeVector from{weights, fake_convert, fake_convert->get_input_node_shared_ptr(1)};
+        NodeRegistry node_registry;
+
+        if (weights->get_output_element_type(0) != fake_convert->get_input_element_type(0)) {
+            weights = std::make_shared<op::v0::Convert>(weights, fake_convert->get_input_element_type(0));
+        }
+        const auto scale = fake_convert->input_value(1);
+        weights = std::make_shared<op::v1::Multiply>(weights, scale);
+        const auto shift = get_fake_convert_shift(fake_convert);
+        if (shift) {
+            from.push_back(shift);
+            weights = std::make_shared<op::v1::Subtract>(weights, shift);
+        }
+        const auto destination_type = element::Type(fake_convert->get_destination_type());
+        const auto weights_convert = std::make_shared<op::v0::Convert>(weights, destination_type);
+        auto compressed_weights = ov::util::constantfold_subgraph(weights_convert);
+        if (!compressed_weights) {
+            return false;
+        }
+        node_registry.add(compressed_weights);
+
+        const auto convert =
+            node_registry.make<op::v0::Convert>(compressed_weights, fake_convert->get_input_element_type(0));
+        const auto inv_scale = ov::util::constantfold_subgraph(
+            std::make_shared<op::v1::Power>(scale,
+                                            op::v0::Constant::create(scale.get_element_type(), Shape{}, {-1.0f})));
+        if (!inv_scale)
+            return false;
+        node_registry.add(inv_scale);
+        std::shared_ptr<op::v1::Multiply> multiply;
+        if (shift) {
+            const auto neg_shift = ov::util::constantfold_subgraph(std::make_shared<op::v0::Negative>(shift));
+            if (!neg_shift)
+                return false;
+            node_registry.add(neg_shift);
+            const auto subtract = node_registry.make<op::v1::Subtract>(convert, neg_shift);
+            multiply = node_registry.make<op::v1::Multiply>(subtract, inv_scale);
+        } else {
+            multiply = node_registry.make<op::v1::Multiply>(convert, inv_scale);
+        }
+
+        compressed_weights->set_friendly_name(weights->get_friendly_name());
+        multiply->set_friendly_name(fake_convert->get_friendly_name());
+
+        copy_runtime_info(from, node_registry.get());
+
+        replace_node(fake_convert, multiply);
+
+        return true;
+    };
+
+    auto m = std::make_shared<pattern::Matcher>(fake_convert_pattern, "CompressWeightsWithFakeConvert");
+    this->register_matcher(m, callback);
+}
+
+static Tensor tensor_from_constant(const std::shared_ptr<op::v0::Constant>& constant) {
+    return Tensor(constant->get_element_type(), constant->get_shape(), const_cast<void*>(constant->get_data_ptr()));
+}
+
+static bool evaluate_node(const std::shared_ptr<Node>& node, const TensorVector& input_tensors, Tensor& output_tensor) {
     if (node->get_output_size() != 1)
         return false;
 
-    ov::TensorVector output_tensors{ov::Tensor(node->get_output_element_type(0), node->get_output_shape(0))};
-    if (!node->evaluate(output_tensors, input_tensors))
+    TensorVector output_tensors{Tensor(node->get_output_element_type(0), node->get_output_shape(0))};
+    if (node->evaluate(output_tensors, input_tensors))
         return false;
 
     output_tensor = output_tensors[0];
@@ -243,91 +326,91 @@ static bool evaluate_node(const std::shared_ptr<ov::Node>& node,
     return true;
 }
 
-static ov::TensorVector get_fake_quantize_input_tensors(const std::shared_ptr<ov::Node>& fq) {
-    ov::Tensor weights_tensor;
+static TensorVector get_fake_quantize_input_tensors(const std::shared_ptr<Node>& fq) {
+    Tensor weights_tensor;
 
     auto fq_input = fq->get_input_node_shared_ptr(0);
-    auto fq_input_constant = ov::as_type_ptr<ov::op::v0::Constant>(fq_input);
+    auto fq_input_constant = as_type_ptr<op::v0::Constant>(fq_input);
 
     if (!fq_input_constant) {
-        auto weights = ov::as_type_ptr<ov::op::v0::Constant>(fq_input->get_input_node_shared_ptr(0));
-        if (!evaluate_node(fq_input, ov::TensorVector{tensor_from_constant(weights)}, weights_tensor))
+        auto weights = as_type_ptr<op::v0::Constant>(fq_input->get_input_node_shared_ptr(0));
+        if (!evaluate_node(fq_input, TensorVector{tensor_from_constant(weights)}, weights_tensor))
             return {};
     } else {
         weights_tensor = tensor_from_constant(fq_input_constant);
     }
 
-    auto in_low = ov::as_type_ptr<ov::op::v0::Constant>(fq->get_input_node_shared_ptr(1));
-    auto in_high = ov::as_type_ptr<ov::op::v0::Constant>(fq->get_input_node_shared_ptr(2));
-    auto out_low = ov::as_type_ptr<ov::op::v0::Constant>(fq->get_input_node_shared_ptr(3));
-    auto out_high = ov::as_type_ptr<ov::op::v0::Constant>(fq->get_input_node_shared_ptr(4));
+    auto in_low = as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(1));
+    auto in_high = as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(2));
+    auto out_low = as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(3));
+    auto out_high = as_type_ptr<op::v0::Constant>(fq->get_input_node_shared_ptr(4));
 
-    return ov::TensorVector{weights_tensor,
-                            tensor_from_constant(in_low),
-                            tensor_from_constant(in_high),
-                            tensor_from_constant(out_low),
-                            tensor_from_constant(out_high)};
+    return TensorVector{weights_tensor,
+                        tensor_from_constant(in_low),
+                        tensor_from_constant(in_high),
+                        tensor_from_constant(out_low),
+                        tensor_from_constant(out_high)};
 }
 
 template <typename T>
-static std::shared_ptr<ov::Node> get_single_consumer_of_type(const std::shared_ptr<ov::Node>& node) {
+static std::shared_ptr<Node> get_single_consumer_of_type(const std::shared_ptr<Node>& node) {
     auto target_inputs = node->output(0).get_target_inputs();
     if (target_inputs.size() != 1)
         return nullptr;
-    auto consumer = ov::as_type<T>(target_inputs.begin()->get_node());
+    auto consumer = as_type<T>(target_inputs.begin()->get_node());
     if (!consumer)
         return nullptr;
     return consumer->shared_from_this();
 }
 
-bool has_dequantization_subgraph(const std::shared_ptr<ov::Node>& fq,
-                                 std::shared_ptr<ov::Node>& convert_to_low_precision,
-                                 std::shared_ptr<ov::Node>& convert_to_high_precision,
-                                 std::shared_ptr<ov::Node>& zero_point) {
-    convert_to_low_precision = get_single_consumer_of_type<ov::op::v0::Convert>(fq);
+bool has_dequantization_subgraph(const std::shared_ptr<Node>& fq,
+                                 std::shared_ptr<Node>& convert_to_low_precision,
+                                 std::shared_ptr<Node>& convert_to_high_precision,
+                                 std::shared_ptr<Node>& zero_point) {
+    convert_to_low_precision = get_single_consumer_of_type<op::v0::Convert>(fq);
     if (!convert_to_low_precision)
         return false;
-    convert_to_high_precision = get_single_consumer_of_type<ov::op::v0::Convert>(convert_to_low_precision);
+    convert_to_high_precision = get_single_consumer_of_type<op::v0::Convert>(convert_to_low_precision);
     if (!convert_to_high_precision)
         return false;
-    auto subtract = get_single_consumer_of_type<ov::op::v1::Subtract>(convert_to_high_precision);
+    auto subtract = get_single_consumer_of_type<op::v1::Subtract>(convert_to_high_precision);
     if (subtract) {
         zero_point = subtract->get_input_node_shared_ptr(1);
-        return get_single_consumer_of_type<ov::op::v1::Multiply>(subtract) != nullptr;
+        return get_single_consumer_of_type<op::v1::Multiply>(subtract) != nullptr;
     } else {
-        return get_single_consumer_of_type<ov::op::v1::Multiply>(convert_to_high_precision) != nullptr;
+        return get_single_consumer_of_type<op::v1::Multiply>(convert_to_high_precision) != nullptr;
     }
 }
 
-static std::shared_ptr<ov::op::v0::Constant> evaluate_fake_quantize(const std::shared_ptr<ov::Node>& quantize,
-                                                                    const std::shared_ptr<ov::Node>& convert) {
-    ov::Tensor quantize_output_tensor;
+static std::shared_ptr<op::v0::Constant> evaluate_fake_quantize(const std::shared_ptr<Node>& quantize,
+                                                                const std::shared_ptr<Node>& convert) {
+    Tensor quantize_output_tensor;
     if (!evaluate_node(quantize, get_fake_quantize_input_tensors(quantize), quantize_output_tensor))
         return nullptr;
-    ov::Tensor new_weights_tensor;
+    Tensor new_weights_tensor;
     if (!evaluate_node(convert, {quantize_output_tensor}, new_weights_tensor))
         return nullptr;
-    return std::make_shared<ov::op::v0::Constant>(new_weights_tensor);
+    return std::make_shared<op::v0::Constant>(new_weights_tensor);
 }
 
-void replace_with_dequantize_subgraph(const std::shared_ptr<ov::op::v0::FakeQuantize>& fq,
-                                      const std::shared_ptr<ov::op::v0::Constant>& new_weights,
-                                      const ov::element::Type& high_precision_type,
-                                      const ov::Shape& scale_or_zero_point_shape,
-                                      const ov::Tensor& scale_tensor,
+void replace_with_dequantize_subgraph(const std::shared_ptr<op::v0::FakeQuantize>& fq,
+                                      const std::shared_ptr<op::v0::Constant>& new_weights,
+                                      const element::Type& high_precision_type,
+                                      const Shape& scale_or_zero_point_shape,
+                                      const Tensor& scale_tensor,
                                       bool zero_point_is_zero,
-                                      const ov::Tensor& zero_point_tensor) {
-    ov::pass::NodeRegistry node_registry;
-    auto convert = node_registry.make<ov::op::v0::Convert>(new_weights, high_precision_type);
-    ov::pass::disable_constant_folding(convert);
-    std::shared_ptr<ov::op::v1::Multiply> mul;
-    auto scale = node_registry.make<ov::op::v0::Constant>(scale_tensor);
+                                      const Tensor& zero_point_tensor) {
+    NodeRegistry node_registry;
+    auto convert = node_registry.make<op::v0::Convert>(new_weights, high_precision_type);
+    disable_constant_folding(convert);
+    std::shared_ptr<op::v1::Multiply> mul;
+    auto scale = node_registry.make<op::v0::Constant>(scale_tensor);
     if (!zero_point_is_zero) {
-        auto zero_point = node_registry.make<ov::op::v0::Constant>(zero_point_tensor);
-        auto sub = node_registry.make<ov::op::v1::Subtract>(convert, zero_point);
-        mul = node_registry.make<ov::op::v1::Multiply>(sub, scale);
+        auto zero_point = node_registry.make<op::v0::Constant>(zero_point_tensor);
+        auto sub = node_registry.make<op::v1::Subtract>(convert, zero_point);
+        mul = node_registry.make<op::v1::Multiply>(sub, scale);
     } else {
-        mul = node_registry.make<ov::op::v1::Multiply>(convert, scale);
+        mul = node_registry.make<op::v1::Multiply>(convert, scale);
     }
     mul->set_friendly_name(fq->get_friendly_name());
     copy_runtime_info(fq, node_registry.get());
@@ -335,24 +418,24 @@ void replace_with_dequantize_subgraph(const std::shared_ptr<ov::op::v0::FakeQuan
 }
 
 template <typename T>
-static void compute_scale_and_zero_point_internal(const std::shared_ptr<ov::op::v0::Constant>& output_low,
-                                                  const std::shared_ptr<ov::op::v0::Constant>& output_high,
+static void compute_scale_and_zero_point_internal(const std::shared_ptr<op::v0::Constant>& output_low,
+                                                  const std::shared_ptr<op::v0::Constant>& output_high,
                                                   size_t levels,
-                                                  ov::Tensor& scale_tensor,
-                                                  ov::Tensor& zero_point_tensor,
+                                                  Tensor& scale_tensor,
+                                                  Tensor& zero_point_tensor,
                                                   bool& zero_point_is_zero) {
     zero_point_is_zero = true;
     float input_range = static_cast<float>(levels - 1);
     float new_output_low = -static_cast<float>(levels / 2);
     T* zero_point = zero_point_tensor.data<T>();
     T* scale = scale_tensor.data<T>();
-    ov::reference::autobroadcast_binop(
+    reference::autobroadcast_binop(
         output_low->get_data_ptr<T>(),
         output_high->get_data_ptr<T>(),
         scale,
         output_low->get_shape(),
         output_high->get_shape(),
-        ov::op::AutoBroadcastType::NUMPY,
+        op::AutoBroadcastType::NUMPY,
         [input_range, new_output_low, zero_point, &zero_point_is_zero](float output_low_value,
                                                                        float output_high_value) mutable {
             float output_range = output_high_value - output_low_value;
@@ -365,15 +448,15 @@ static void compute_scale_and_zero_point_internal(const std::shared_ptr<ov::op::
         });
 }
 
-bool compute_scale_and_zero_point(const std::shared_ptr<ov::op::v0::Constant>& output_low,
-                                  const std::shared_ptr<ov::op::v0::Constant>& output_high,
+bool compute_scale_and_zero_point(const std::shared_ptr<op::v0::Constant>& output_low,
+                                  const std::shared_ptr<op::v0::Constant>& output_high,
                                   size_t levels,
-                                  ov::Tensor& scale_tensor,
-                                  ov::Tensor& zero_point_tensor,
+                                  Tensor& scale_tensor,
+                                  Tensor& zero_point_tensor,
                                   bool& zero_point_is_zero) {
     const auto type = output_low->get_element_type();
     switch (type) {
-    case ov::element::Type_t::f32: {
+    case element::Type_t::f32: {
         compute_scale_and_zero_point_internal<float>(output_low,
                                                      output_high,
                                                      levels,
@@ -382,22 +465,22 @@ bool compute_scale_and_zero_point(const std::shared_ptr<ov::op::v0::Constant>& o
                                                      zero_point_is_zero);
         break;
     }
-    case ov::element::f16: {
-        compute_scale_and_zero_point_internal<ov::float16>(output_low,
-                                                           output_high,
-                                                           levels,
-                                                           scale_tensor,
-                                                           zero_point_tensor,
-                                                           zero_point_is_zero);
+    case element::f16: {
+        compute_scale_and_zero_point_internal<float16>(output_low,
+                                                       output_high,
+                                                       levels,
+                                                       scale_tensor,
+                                                       zero_point_tensor,
+                                                       zero_point_is_zero);
         break;
     }
-    case ov::element::bf16: {
-        compute_scale_and_zero_point_internal<ov::bfloat16>(output_low,
-                                                            output_high,
-                                                            levels,
-                                                            scale_tensor,
-                                                            zero_point_tensor,
-                                                            zero_point_is_zero);
+    case element::bf16: {
+        compute_scale_and_zero_point_internal<bfloat16>(output_low,
+                                                        output_high,
+                                                        levels,
+                                                        scale_tensor,
+                                                        zero_point_tensor,
+                                                        zero_point_is_zero);
         break;
     }
 
@@ -433,16 +516,16 @@ static void transform(const T* first1,
 
 template <typename T, typename U, typename F>
 static void numpy_broadcast_4inputs(const T* weights,
-                                    const ov::Shape& weights_shape,
+                                    const Shape& weights_shape,
                                     const T* in_low,
-                                    const ov::Shape& in_low_shape,
+                                    const Shape& in_low_shape,
                                     const T* in_high,
-                                    const ov::Shape& in_high_shape,
+                                    const Shape& in_high_shape,
                                     const T* zero_point,
-                                    const ov::Shape& zero_point_shape,
+                                    const Shape& zero_point_shape,
                                     U* new_weights,
                                     F& f) {
-    using namespace ov::reference::fake_quantize_details;
+    using namespace reference::fake_quantize_details;
 
     std::vector<size_t> output_strides = compute_strides(weights_shape, weights_shape);
     std::vector<size_t> in_low_strides = compute_strides(weights_shape, in_low_shape);
@@ -525,20 +608,20 @@ static void numpy_broadcast_4inputs(const T* weights,
 
 template <typename T, typename U, typename F>
 static void numpy_broadcast_6inputs(const T* weights,
-                                    const ov::Shape& weights_shape,
+                                    const Shape& weights_shape,
                                     const T* in_low,
-                                    const ov::Shape& in_low_shape,
+                                    const Shape& in_low_shape,
                                     const T* in_high,
-                                    const ov::Shape& in_high_shape,
+                                    const Shape& in_high_shape,
                                     const T* out_low,
-                                    const ov::Shape& out_low_shape,
+                                    const Shape& out_low_shape,
                                     const T* out_high,
-                                    const ov::Shape& out_high_shape,
+                                    const Shape& out_high_shape,
                                     const T* zero_point,
-                                    const ov::Shape& zero_point_shape,
+                                    const Shape& zero_point_shape,
                                     U* new_weights,
                                     F& f) {
-    using namespace ov::reference::fake_quantize_details;
+    using namespace reference::fake_quantize_details;
 
     std::vector<size_t> output_strides = compute_strides(weights_shape, weights_shape);
     std::vector<size_t> in_low_strides = compute_strides(weights_shape, in_low_shape);
@@ -599,39 +682,38 @@ static inline int8_t convert_to_int4(float val) {
     return static_cast<int8_t>(std::nearbyint(val)) & 0x0f;
 }
 
-static std::shared_ptr<ov::op::v0::Constant> create_weights_constant(const ov::Tensor& weights_tensor,
-                                                                     const ov::element::Type& type) {
-    auto weights = std::make_shared<ov::op::v0::Constant>(weights_tensor);
+static std::shared_ptr<op::v0::Constant> create_weights_constant(const Tensor& weights_tensor,
+                                                                 const element::Type& type) {
+    auto weights = std::make_shared<op::v0::Constant>(weights_tensor);
     if (weights->get_element_type() != type) {
-        return ov::util::constantfold_subgraph(std::make_shared<ov::op::v0::Convert>(weights, type));
+        return util::constantfold_subgraph(std::make_shared<op::v0::Convert>(weights, type));
     }
     return weights;
 }
 
 template <typename T>
-static std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights_internal(
-    const ov::element::Type& low_precision_type,
-    const T* weights,
-    const ov::Shape& weights_shape,
-    const T* input_low,
-    const ov::Shape& input_low_shape,
-    const T* input_high,
-    const ov::Shape& input_high_shape,
-    const T* output_low,
-    const ov::Shape& output_low_shape,
-    const T* output_high,
-    const ov::Shape& output_high_shape,
-    const T* zero_point,
-    const ov::Shape& zero_point_shape,
-    size_t levels,
-    bool& can_fuse_zero_point) {
-    ov::Tensor compressed_weights_tensor(ov::element::i8, weights_shape);
+static std::shared_ptr<op::v0::Constant> compress_quantized_weights_internal(const element::Type& low_precision_type,
+                                                                             const T* weights,
+                                                                             const Shape& weights_shape,
+                                                                             const T* input_low,
+                                                                             const Shape& input_low_shape,
+                                                                             const T* input_high,
+                                                                             const Shape& input_high_shape,
+                                                                             const T* output_low,
+                                                                             const Shape& output_low_shape,
+                                                                             const T* output_high,
+                                                                             const Shape& output_high_shape,
+                                                                             const T* zero_point,
+                                                                             const Shape& zero_point_shape,
+                                                                             size_t levels,
+                                                                             bool& can_fuse_zero_point) {
+    Tensor compressed_weights_tensor(element::i8, weights_shape);
     int8_t* compressed_weights = compressed_weights_tensor.data<int8_t>();
-    ov::Tensor compressed_weights_with_fused_zero_point_tensor(ov::element::i8, weights_shape);
+    Tensor compressed_weights_with_fused_zero_point_tensor(element::i8, weights_shape);
     int8_t* compressed_weights_with_fused_zero_point = compressed_weights_with_fused_zero_point_tensor.data<int8_t>();
     T levels_minus_one = static_cast<T>(levels - 1);
     can_fuse_zero_point = true;
-    const auto convert_to_low_precision = low_precision_type == ov::element::i4 ? convert_to_int4 : convert_to_int8;
+    const auto convert_to_low_precision = low_precision_type == element::i4 ? convert_to_int4 : convert_to_int8;
 
     auto f =
         [compressed_weights_with_fused_zero_point, levels_minus_one, convert_to_low_precision, &can_fuse_zero_point](
@@ -642,12 +724,12 @@ static std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights_internal
             T output_high,
             T zero_point) mutable {
             int8_t compressed_weights_value =
-                convert_to_low_precision(ov::reference::fake_quantize_details::quantize(weights_value,
-                                                                                        input_low,
-                                                                                        input_high,
-                                                                                        output_low,
-                                                                                        output_high,
-                                                                                        levels_minus_one));
+                convert_to_low_precision(reference::fake_quantize_details::quantize(weights_value,
+                                                                                    input_low,
+                                                                                    input_high,
+                                                                                    output_low,
+                                                                                    output_high,
+                                                                                    levels_minus_one));
             T weights_minus_zero_point = static_cast<T>(compressed_weights_value) - zero_point;
             int8_t compressed_weights_with_fused_zero_point_value = convert_to_low_precision(weights_minus_zero_point);
             can_fuse_zero_point &=
@@ -676,17 +758,15 @@ static std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights_internal
         low_precision_type);
 }
 
-std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights(
-    const std::shared_ptr<ov::op::v0::Constant>& weights,
-    const std::shared_ptr<ov::op::v0::FakeQuantize>& fq,
-    const std::shared_ptr<ov::op::v0::Constant>& input_low,
-    const std::shared_ptr<ov::op::v0::Constant>& input_high,
-    const std::shared_ptr<ov::op::v0::Constant>& output_low,
-    const std::shared_ptr<ov::op::v0::Constant>& output_high,
-    const std::shared_ptr<ov::Node>& convert,
-    const std::shared_ptr<ov::Node>& zero_point,
-    bool& can_fuse_zero_point) {
-    std::shared_ptr<ov::op::v0::Constant> new_weights;
+std::shared_ptr<op::v0::Constant> compress_quantized_weights(const std::shared_ptr<op::v0::Constant>& weights,
+                                                             const std::shared_ptr<op::v0::FakeQuantize>& fq,
+                                                             const std::shared_ptr<op::v0::Constant>& input_low,
+                                                             const std::shared_ptr<op::v0::Constant>& input_high,
+                                                             const std::shared_ptr<op::v0::Constant>& output_low,
+                                                             const std::shared_ptr<op::v0::Constant>& output_high,
+                                                             const std::shared_ptr<Node>& convert,
+                                                             const std::shared_ptr<Node>& zero_point,
+                                                             bool& can_fuse_zero_point) {
     const auto& weights_shape = weights->get_shape();
     const auto& type = weights->get_element_type();
     const auto& low_precision_type = convert->get_output_element_type(0);
@@ -694,12 +774,12 @@ std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights(
     if (zero_point == nullptr)
         return evaluate_fake_quantize(fq, convert);
 
-    auto zero_point_constant = ov::util::constantfold_subgraph(zero_point);
+    auto zero_point_constant = util::constantfold_subgraph(zero_point);
     if (!zero_point_constant)
         return nullptr;
 
     switch (type) {
-    case ov::element::f32: {
+    case element::f32: {
         return compress_quantized_weights_internal(low_precision_type,
                                                    weights->get_data_ptr<float>(),
                                                    weights_shape,
@@ -715,43 +795,40 @@ std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights(
                                                    zero_point_constant->get_shape(),
                                                    fq->get_levels(),
                                                    can_fuse_zero_point);
-        break;
     }
-    case ov::element::f16: {
+    case element::f16: {
         return compress_quantized_weights_internal(low_precision_type,
-                                                   weights->get_data_ptr<ov::float16>(),
+                                                   weights->get_data_ptr<float16>(),
                                                    weights_shape,
-                                                   input_low->get_data_ptr<ov::float16>(),
+                                                   input_low->get_data_ptr<float16>(),
                                                    input_low->get_shape(),
-                                                   input_high->get_data_ptr<ov::float16>(),
+                                                   input_high->get_data_ptr<float16>(),
                                                    input_low->get_shape(),
-                                                   output_low->get_data_ptr<ov::float16>(),
+                                                   output_low->get_data_ptr<float16>(),
                                                    output_low->get_shape(),
-                                                   output_high->get_data_ptr<ov::float16>(),
+                                                   output_high->get_data_ptr<float16>(),
                                                    output_low->get_shape(),
-                                                   zero_point_constant->get_data_ptr<ov::float16>(),
+                                                   zero_point_constant->get_data_ptr<float16>(),
                                                    zero_point_constant->get_shape(),
                                                    fq->get_levels(),
                                                    can_fuse_zero_point);
-        break;
     }
-    case ov::element::bf16: {
+    case element::bf16: {
         return compress_quantized_weights_internal(low_precision_type,
-                                                   weights->get_data_ptr<ov::bfloat16>(),
+                                                   weights->get_data_ptr<bfloat16>(),
                                                    weights_shape,
-                                                   input_low->get_data_ptr<ov::bfloat16>(),
+                                                   input_low->get_data_ptr<bfloat16>(),
                                                    input_low->get_shape(),
-                                                   input_high->get_data_ptr<ov::bfloat16>(),
+                                                   input_high->get_data_ptr<bfloat16>(),
                                                    input_low->get_shape(),
-                                                   output_low->get_data_ptr<ov::bfloat16>(),
+                                                   output_low->get_data_ptr<bfloat16>(),
                                                    output_low->get_shape(),
-                                                   output_high->get_data_ptr<ov::bfloat16>(),
+                                                   output_high->get_data_ptr<bfloat16>(),
                                                    output_low->get_shape(),
-                                                   zero_point_constant->get_data_ptr<ov::bfloat16>(),
+                                                   zero_point_constant->get_data_ptr<bfloat16>(),
                                                    zero_point_constant->get_shape(),
                                                    fq->get_levels(),
                                                    can_fuse_zero_point);
-        break;
     }
     default:
         return nullptr;
@@ -760,33 +837,32 @@ std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights(
 }
 
 template <typename T>
-static std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights_internal(
-    const ov::element::Type& low_precision_type,
-    const T* weights,
-    const ov::Shape& weights_shape,
-    const T* input_low,
-    const ov::Shape& input_low_shape,
-    const T* input_high,
-    const ov::Shape& input_high_shape,
-    const T* zero_point,
-    const ov::Shape& zero_point_shape,
-    size_t levels,
-    bool zero_point_is_zero,
-    bool& can_fuse_zero_point) {
-    using namespace ov::reference::fake_quantize_details;
-    ov::Tensor compressed_weights_tensor(ov::element::i8, weights_shape);
+static std::shared_ptr<op::v0::Constant> compress_quantized_weights_internal(const element::Type& low_precision_type,
+                                                                             const T* weights,
+                                                                             const Shape& weights_shape,
+                                                                             const T* input_low,
+                                                                             const Shape& input_low_shape,
+                                                                             const T* input_high,
+                                                                             const Shape& input_high_shape,
+                                                                             const T* zero_point,
+                                                                             const Shape& zero_point_shape,
+                                                                             size_t levels,
+                                                                             bool zero_point_is_zero,
+                                                                             bool& can_fuse_zero_point) {
+    using namespace reference::fake_quantize_details;
+    Tensor compressed_weights_tensor(element::i8, weights_shape);
     int8_t* compressed_weights = compressed_weights_tensor.data<int8_t>();
     int8_t* compressed_weights_with_fused_zero_point = nullptr;
-    ov::Tensor compressed_weights_with_fused_zero_point_tensor;
+    Tensor compressed_weights_with_fused_zero_point_tensor;
     if (!zero_point_is_zero) {
-        compressed_weights_with_fused_zero_point_tensor = ov::Tensor(ov::element::i8, weights_shape);
+        compressed_weights_with_fused_zero_point_tensor = Tensor(element::i8, weights_shape);
         compressed_weights_with_fused_zero_point = compressed_weights_with_fused_zero_point_tensor.data<int8_t>();
     }
     T levels_minus_one = static_cast<T>(levels - 1);
     T output_low = -static_cast<T>(levels / 2);
     T output_high = levels_minus_one + output_low;
     can_fuse_zero_point = !zero_point_is_zero;
-    const auto convert_to_low_precision = low_precision_type == ov::element::i4 ? convert_to_int4 : convert_to_int8;
+    const auto convert_to_low_precision = low_precision_type == element::i4 ? convert_to_int4 : convert_to_int8;
 
     auto f = [compressed_weights_with_fused_zero_point,
               levels_minus_one,
@@ -823,66 +899,66 @@ static std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights_internal
         low_precision_type);
 }
 
-std::shared_ptr<ov::op::v0::Constant> compress_quantized_weights(
-    const std::shared_ptr<ov::op::v0::Constant>& weights,
-    const std::shared_ptr<ov::op::v0::Constant>& input_low,
-    const std::shared_ptr<ov::op::v0::Constant>& input_high,
-    const ov::element::Type& low_precision_type,
-    size_t levels,
-    bool zero_point_is_zero,
-    const ov::Tensor& zero_point_tensor,
-    bool& can_fuse_zero_point) {
-    std::shared_ptr<ov::op::v0::Constant> new_weights;
+std::shared_ptr<op::v0::Constant> compress_quantized_weights(const std::shared_ptr<op::v0::Constant>& weights,
+                                                             const std::shared_ptr<op::v0::Constant>& input_low,
+                                                             const std::shared_ptr<op::v0::Constant>& input_high,
+                                                             const element::Type& low_precision_type,
+                                                             size_t levels,
+                                                             bool zero_point_is_zero,
+                                                             const Tensor& zero_point_tensor,
+                                                             bool& can_fuse_zero_point) {
     const auto& weights_shape = weights->get_shape();
     const auto& type = weights->get_element_type();
     switch (type) {
-    case ov::element::f32: {
-        new_weights = compress_quantized_weights_internal(low_precision_type,
-                                                          weights->get_data_ptr<float>(),
-                                                          weights_shape,
-                                                          input_low->get_data_ptr<float>(),
-                                                          input_low->get_shape(),
-                                                          input_high->get_data_ptr<float>(),
-                                                          input_low->get_shape(),
-                                                          zero_point_tensor.data<float>(),
-                                                          zero_point_tensor.get_shape(),
-                                                          levels,
-                                                          zero_point_is_zero,
-                                                          can_fuse_zero_point);
-        break;
+    case element::f32: {
+        return compress_quantized_weights_internal(low_precision_type,
+                                                   weights->get_data_ptr<float>(),
+                                                   weights_shape,
+                                                   input_low->get_data_ptr<float>(),
+                                                   input_low->get_shape(),
+                                                   input_high->get_data_ptr<float>(),
+                                                   input_low->get_shape(),
+                                                   zero_point_tensor.data<float>(),
+                                                   zero_point_tensor.get_shape(),
+                                                   levels,
+                                                   zero_point_is_zero,
+                                                   can_fuse_zero_point);
     }
-    case ov::element::f16: {
-        new_weights = compress_quantized_weights_internal(low_precision_type,
-                                                          weights->get_data_ptr<ov::float16>(),
-                                                          weights_shape,
-                                                          input_low->get_data_ptr<ov::float16>(),
-                                                          input_low->get_shape(),
-                                                          input_high->get_data_ptr<ov::float16>(),
-                                                          input_low->get_shape(),
-                                                          zero_point_tensor.data<ov::float16>(),
-                                                          zero_point_tensor.get_shape(),
-                                                          levels,
-                                                          zero_point_is_zero,
-                                                          can_fuse_zero_point);
-        break;
+    case element::f16: {
+        return compress_quantized_weights_internal(low_precision_type,
+                                                   weights->get_data_ptr<float16>(),
+                                                   weights_shape,
+                                                   input_low->get_data_ptr<float16>(),
+                                                   input_low->get_shape(),
+                                                   input_high->get_data_ptr<float16>(),
+                                                   input_low->get_shape(),
+                                                   zero_point_tensor.data<float16>(),
+                                                   zero_point_tensor.get_shape(),
+                                                   levels,
+                                                   zero_point_is_zero,
+                                                   can_fuse_zero_point);
     }
-    case ov::element::bf16: {
-        new_weights = compress_quantized_weights_internal(low_precision_type,
-                                                          weights->get_data_ptr<ov::bfloat16>(),
-                                                          weights_shape,
-                                                          input_low->get_data_ptr<ov::bfloat16>(),
-                                                          input_low->get_shape(),
-                                                          input_high->get_data_ptr<ov::bfloat16>(),
-                                                          input_low->get_shape(),
-                                                          zero_point_tensor.data<ov::bfloat16>(),
-                                                          zero_point_tensor.get_shape(),
-                                                          levels,
-                                                          zero_point_is_zero,
-                                                          can_fuse_zero_point);
-        break;
+    case element::bf16: {
+        return compress_quantized_weights_internal(low_precision_type,
+                                                   weights->get_data_ptr<bfloat16>(),
+                                                   weights_shape,
+                                                   input_low->get_data_ptr<bfloat16>(),
+                                                   input_low->get_shape(),
+                                                   input_high->get_data_ptr<bfloat16>(),
+                                                   input_low->get_shape(),
+                                                   zero_point_tensor.data<bfloat16>(),
+                                                   zero_point_tensor.get_shape(),
+                                                   levels,
+                                                   zero_point_is_zero,
+                                                   can_fuse_zero_point);
     }
     default:
         return nullptr;
     }
-    return new_weights;
+    return nullptr;
+}
+
+CompressQuantizeWeights::CompressQuantizeWeights() {
+    add_matcher<CompressWeightsWithFakeQuantize>();
+    add_matcher<CompressWeightsWithFakeConvert>();
 }

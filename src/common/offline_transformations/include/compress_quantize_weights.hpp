@@ -1,4 +1,4 @@
-// Copyright (C) 2018-2023 Intel Corporation
+// Copyright (C) 2018-2024 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 //
 
@@ -10,9 +10,25 @@ namespace ov {
 namespace pass {
 
 class CompressQuantizeWeights;
+class CompressWeightsWithFakeQuantize;
+class CompressWeightsWithFakeConvert;
 
 }  // namespace pass
 }  // namespace ov
+
+class ov::pass::CompressWeightsWithFakeQuantize : public ov::pass::MatcherPass {
+public:
+    OPENVINO_RTTI("CompressWeightsWithFakeQuantize", "0");
+
+    CompressWeightsWithFakeQuantize();
+};
+
+class ov::pass::CompressWeightsWithFakeConvert : public ov::pass::MatcherPass {
+public:
+    OPENVINO_RTTI("CompressWeightsWithFakeConvert", "0");
+
+    CompressWeightsWithFakeConvert();
+};
 
 /*
     CompressQuantizeWeights transformation goal is to pre-quantize data to minimize runtime calculations with constant
@@ -58,7 +74,7 @@ class CompressQuantizeWeights;
     With that we can skip same calculations in the runtime and make loading of such sub-graphs to the plugin faster.
     Additionally zero point can be fused to weights if it doesn't affect accuracy.
 */
-class ov::pass::CompressQuantizeWeights : public ov::pass::MatcherPass {
+class ov::pass::CompressQuantizeWeights : public ov::pass::GraphRewrite {
 public:
     OPENVINO_RTTI("CompressQuantizeWeights", "0");
     CompressQuantizeWeights();

@@ -155,3 +155,21 @@ float8_e5m2 float8_e5m2::operator/=(const T& other) {
 #    pragma warning(pop)
 #endif
 }  // namespace ov
+
+namespace std {
+template <>
+class numeric_limits<ov::float8_e5m2> {
+public:
+    static constexpr bool is_specialized = true;
+    static constexpr bool is_signed = true;
+    static constexpr ov::float8_e5m2 min() noexcept {
+        return ov::float8_e5m2::from_bits(0x04);
+    }
+    static constexpr ov::float8_e5m2 max() noexcept {
+        return ov::float8_e5m2::from_bits(0x7B);
+    }
+    static constexpr ov::float8_e5m2 lowest() noexcept {
+        return ov::float8_e5m2::from_bits(0xFB);
+    }
+};
+}  // namespace std
