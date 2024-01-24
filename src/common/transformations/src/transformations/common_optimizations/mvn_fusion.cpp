@@ -21,6 +21,7 @@
 #include "openvino/op/squared_difference.hpp"
 #include "openvino/op/subtract.hpp"
 #include "openvino/pass/pattern/op/or.hpp"
+#include "openvino/pass/pattern/op/optional.hpp"
 #include "openvino/pass/pattern/op/wrap_type.hpp"
 #include "transformations/utils/utils.hpp"
 
@@ -61,13 +62,12 @@ ov::pass::MVNFusionWithoutConstants::MVNFusionWithoutConstants() {
 
     const auto reuseSub1OrNot = std::make_shared<pattern::op::Or>(OutputVector{sub1, sub2});
 
-    auto cast = pattern::wrap_type<ov::op::v0::Convert>({reuseSub1OrNot});
-    const auto hasConvertOrNot = std::make_shared<pattern::op::Or>(OutputVector{cast, reuseSub1OrNot});
+    const auto powerInput = pattern::optional<ov::op::v0::Convert>({reuseSub1OrNot}, reuseSub1OrNot);
 
     // Sqrt(ReduceMean((x - ReduceMean(x, axes)) ^ 2))
     //                 `---------------------power--'
     auto const_2 = pattern::wrap_type<ov::op::v0::Constant>(value_is_equal_to<float>({2.0}));
-    auto power = pattern::wrap_type<ov::op::v1::Power>({hasConvertOrNot, const_2});
+    auto power = pattern::wrap_type<ov::op::v1::Power>({powerInput, const_2});
 
     // Sqrt(ReduceMean((x - ReduceMean(x, axes)) ^ 2))
     //     `---mean3--------------------------------'
@@ -180,8 +180,8 @@ ov::pass::MVNFusionWithoutConstants::MVNFusionWithoutConstants() {
             nodes_to_copy_info.push_back(pattern_to_output.at(sub2).get_node_shared_ptr());
         }
 
-        if (pattern_to_output.count(cast)) {
-            nodes_to_copy_info.push_back(pattern_to_output.at(cast).get_node_shared_ptr());
+        if (pattern_to_output.count(powerInput)) {
+            nodes_to_copy_info.push_back(pattern_to_output.at(powerInput).get_node_shared_ptr());
         }
 
         if (pattern_to_output.count(div_alt)) {

@@ -20,6 +20,7 @@ public:
     /// not add node to match list.
     /// \param patterns The patterns to try for matching
     Or(const OutputVector& patterns) : Pattern(patterns) {}
+    Or(const OutputVector& patterns, const pattern::op::ValuePredicate& pred) : Pattern(patterns, pred) {}
 
     bool match_value(pattern::Matcher* matcher,
                      const Output<Node>& pattern_value,

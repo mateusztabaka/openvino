@@ -11,9 +11,10 @@ bool ov::pass::pattern::op::Or::match_value(Matcher* matcher,
                                             const Output<Node>& graph_value) {
     for (auto input_value : input_values()) {
         auto saved = matcher->start_match();
-        if (matcher->match_value(input_value, graph_value)) {
+        if (matcher->match_value(input_value, graph_value) && m_predicate(graph_value)) {
             auto& pattern_map = matcher->get_pattern_value_map();
             pattern_map[input_value.get_node_shared_ptr()] = graph_value;
+            pattern_map[shared_from_this()] = graph_value;
             return saved.finish(true);
         }
     }
