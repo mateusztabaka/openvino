@@ -59,6 +59,7 @@
 #include "transformations/common_optimizations/push_constant_to_subgraph.hpp"
 #include "transformations/common_optimizations/random_uniform_fusion.hpp"
 #include "transformations/common_optimizations/reduce_reshape_fusion.hpp"
+#include "transformations/common_optimizations/remove_fake_quantize.hpp"
 #include "transformations/common_optimizations/relu_fake_quantize_fusion.hpp"
 #include "transformations/common_optimizations/remove_concat_zero_dim_input.hpp"
 #include "transformations/common_optimizations/remove_filtering_boxes_by_size.hpp"
@@ -130,8 +131,9 @@ bool ov::pass::MOCTransformations::run_on_model(const std::shared_ptr<ov::Model>
     using namespace ov::pass;
     REGISTER_PASS(manager, InitNodeInfo)
     if (m_low_precision_enabled) {
-        manager.register_pass<ov::pass::MarkDequantizationSubgraph>(
-            element::TypeVector{ov::element::i8, ov::element::u8, ov::element::i4, ov::element::u4});
+        element::TypeVector supported_low_precision_types{ov::element::i8, ov::element::u8, ov::element::i4, ov::element::u4};
+        manager.register_pass<ov::pass::RemoveFakeQuantize>(supported_low_precision_types);
+        manager.register_pass<ov::pass::MarkDequantizationSubgraph>(supported_low_precision_types);
     }
     if (!m_use_shapes) {
         manager.register_pass<ov::pass::DisableShapeOfConstantFolding>();
