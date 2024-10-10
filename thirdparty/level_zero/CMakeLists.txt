@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+if (TARGET ze_loader)
+    set_property(TARGET ze_loader APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include/level_zero>)
+    return()
+endif()
+
 set(BUILD_SHARED_LIBS OFF)
 
 
