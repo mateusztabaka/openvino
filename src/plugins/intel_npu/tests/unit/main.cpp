@@ -24,16 +24,14 @@
 void* (*_dlopen)(const char* filename, int mode);
 char* (*_dlerror)(void);
 
-__attribute__((constructor)) static void init() {
-    _dlopen = reinterpret_cast<decltype(_dlopen)>(dlsym(RTLD_NEXT, "dlopen"));
-    _dlerror = reinterpret_cast<decltype(_dlerror)>(dlsym(RTLD_NEXT, "dlerror"));
-}
-
 thread_local char* dlopen_error_str = nullptr;
 
 extern "C"
 __attribute__((visibility("default")))
 void* dlopen(const char* filename, int mode) {
+    if (!_dlopen) {
+        _dlopen = reinterpret_cast<decltype(_dlopen)>(dlsym(RTLD_NEXT, "dlopen"));
+    }
     if (filename && strstr(filename, "libze_intel_npu.so")) {
         dlopen_error_str = (char*)"Failed to dlopen libze_intel_npu.so";
         return nullptr;
@@ -44,6 +42,9 @@ void* dlopen(const char* filename, int mode) {
 extern "C"
 __attribute__((visibility("default")))
 char* dlerror(void) {
+    if (!_dlerror) {
+        _dlerror = reinterpret_cast<decltype(_dlerror)>(dlsym(RTLD_NEXT, "dlerror"));
+    }
     if (dlopen_error_str) {
         char* ret = dlopen_error_str;
         dlopen_error_str = nullptr;
